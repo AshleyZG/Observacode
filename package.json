@@ -55,11 +55,12 @@
   "dependencies": {
     "@jupyterlab/application": "^3.1.0",
     "@jupyterlab/coreutils": "^5.1.0",
-    "@jupyterlab/services": "^6.1.0"
-
+    "@jupyterlab/notebook": "^3.4.2",
+    "@jupyterlab/services": "^6.1.0",
+    "@jupyterlab/user": "^4.0.0-alpha.2"
   },
   "devDependencies": {
-    "@jupyterlab/builder": "^3.1.0",
+    "@jupyterlab/builder": "4.0.0-alpha.10",
     "@typescript-eslint/eslint-plugin": "^4.8.1",
     "@typescript-eslint/parser": "^4.8.1",
     "eslint": "^7.14.0",
@@ -84,16 +85,16 @@
   "publishConfig": {
     "access": "public"
   },
-  "jupyterlab": { 
+  "jupyterlab": {
     "discovery": {
-        "server": {
-          "managers": [
-            "pip"
-          ],
-          "base": {
-            "name": "observacode"
-          }
+      "server": {
+        "managers": [
+          "pip"
+        ],
+        "base": {
+          "name": "observacode"
         }
+      }
     },
     "extension": true,
     "outputDir": "observacode/labextension"

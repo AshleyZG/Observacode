@@ -112,3 +112,9 @@ dmypy.json
 
 # OSX files
 .DS_Store
+
+
+# Custom Setting
+package-lock.json
+yarn-error.log
+yarn.lock

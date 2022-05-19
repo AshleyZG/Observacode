@@ -4,7 +4,7 @@ import {
 } from '@jupyterlab/application';
 
 import { requestAPI } from './handler';
-
+import plugintest from './toolbar';
 /**
  * Initialization data for the observacode extension.
  */
@@ -26,4 +26,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
   }
 };
 
-export default plugin;
+
+export default [plugin, plugintest];
+// export {plugin, plugintest};
