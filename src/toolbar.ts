@@ -1,18 +1,21 @@
 import {
     JupyterFrontEnd,
+    ILayoutRestorer,
     JupyterFrontEndPlugin
   } from '@jupyterlab/application';
 
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import {
-    NotebookActions,
+    // NotebookActions,
     NotebookPanel,
     INotebookModel,
   } from '@jupyterlab/notebook';
 import { DisposableDelegate, IDisposable } from '@lumino/disposable';
 import { ToolbarButton } from '@jupyterlab/apputils';
 import { CodeCell } from '@jupyterlab/cells';
-
+import {
+    ICommandPalette,
+  } from '@jupyterlab/apputils';
 import { 
 	IObservableJSON, 
 	IObservableMap, 
@@ -21,6 +24,10 @@ import {
     ReadonlyPartialJSONValue
 } from '@lumino/coreutils';
 import { ICurrentUser } from '@jupyterlab/user';
+import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+
+import { v4 as uuid } from 'uuid';
+
 
 function newOnMetadataChanged (panel: NotebookPanel, cell: CodeCell, user: ICurrentUser){
 	function fn (
@@ -54,33 +61,14 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
 
         const callback = () => {
 
-            // set activecell
-            var activeCell = widget.content.activeCell;
-            var previousCell;
-            var branchID =  1;
-            if (activeCell?.model.metadata.has('nbranch')){
-                branchID = (activeCell.model.metadata.get('nbranch') as number) +1;
-            }
-            activeCell?.model.metadata.changed.connect(newOnMetadataChanged(widget, activeCell as CodeCell, this.user));
-            previousCell = activeCell;
-
-            // create a new cell below
-            NotebookActions.insertBelow(widget.content);
-            activeCell = widget.content.activeCell;
-            activeCell?.model.sharedModel.setSource(`%%copy_space branch branch${branchID}`)
-            activeCell?.model.metadata.set('branchID', branchID);
-            activeCell?.model.metadata.set('owner', (this.user as any).name);
-            
-            previousCell?.model.metadata.set('nbranch', branchID);
-
 
         }
 
         const button = new ToolbarButton({
             className: 'branch-button',
-            label: 'Create A New Branch',
+            label: 'Save Exercise',
             onClick: callback,
-            tooltip: 'Create a new branch'
+            tooltip: 'Save a new exercise'
         })
 
         widget.toolbar.insertItem(10, 'branch', button);
@@ -90,42 +78,72 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
     }
 }
 
-class SeeAllButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel>{
-    createNew(widget: NotebookPanel, context: DocumentRegistry.IContext<INotebookModel>): void | IDisposable {
-        const callback = () => {
-            for (var cell of widget.content.widgets){
-                cell.node.style.removeProperty('display');
-            }
-
-        }
-        const button = new ToolbarButton({
-            className: 'seeall-button',
-            label: 'See All Branches',
-            onClick: callback,
-            tooltip: 'See All Branches'
-        })
-
-        widget.toolbar.insertItem(11, 'seeall', button);
-        return new DisposableDelegate(() => {
-            button.dispose();
-        })
-    }
-}
-
-
 const plugintest: JupyterFrontEndPlugin<void> = {
     id: 'ovservacode:test-plugin',
     autoStart: true,
-    requires: [ICurrentUser],
+    requires: [ICurrentUser, ICommandPalette, IRenderMimeRegistry, ILayoutRestorer],
     activate: activatePluginTest
 }
   
+
+function saveExercise(app: JupyterFrontEnd){
+    function fn(){
+        console.log('save exercise fn');
+        const {shell} = app;
+        const nbPanel = shell.currentWidget as NotebookPanel;
+
+        if (nbPanel.model?.metadata.has('exerciseID')){
+            alert("Exercise ID already exists");
+        }
+        else{
+            var exerciseName = prompt("Please enter exercise name");
+            if (exerciseName===null){
+                alert("Exercise name can not be empty");
+            }else{
+                // assign uuid to this notebook
+                nbPanel.model?.metadata.set('exerciseID', uuid());
+                nbPanel.model?.metadata.set('exerciseName', exerciseName);
+                console.log(nbPanel.model?.metadata);
+            }
+        }
+    }
+    return fn;
+}
+
+function clearExercise(app: JupyterFrontEnd){
+    function fn(){
+        console.log('clear exercise fn');
+        const {shell} = app;
+        const nbPanel = shell.currentWidget as NotebookPanel;
+        nbPanel.model?.metadata.delete('exerciseID');
+        console.log(nbPanel.model?.metadata);
+    }
+    return fn;
+}
+
 function activatePluginTest(
     app: JupyterFrontEnd,
-    user: ICurrentUser
+    user: ICurrentUser,
+    palette: ICommandPalette,
+    rendermime: IRenderMimeRegistry,
+    restorer: ILayoutRestorer    
 ): void {
     app.docRegistry.addWidgetExtension('Notebook', new ButtonExtension(user));
-    app.docRegistry.addWidgetExtension('Notebook', new SeeAllButtonExtension());
+    const {commands} = app;
+    commands.addCommand('observacode/save-exercise:save', {
+        execute: saveExercise(app),
+        label: 'Save Exercise'
+    })
+    commands.addCommand('observacode/save-exercise:clear', {
+        execute: clearExercise(app),
+        label: 'Clear Exercise'
+    })
+
+    palette.addItem({
+        command: 'observacode/save-exercise:save',
+        category: 'Settings'
+    })
+
 }
   
 export default plugintest;

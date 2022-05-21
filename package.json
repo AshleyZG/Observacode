@@ -18,6 +18,7 @@
   },
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "schema/**/*.json",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
@@ -61,6 +62,7 @@
   },
   "devDependencies": {
     "@jupyterlab/builder": "4.0.0-alpha.10",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.8.1",
     "@typescript-eslint/parser": "^4.8.1",
     "eslint": "^7.14.0",
@@ -97,6 +99,7 @@
       }
     },
     "extension": true,
+    "schemaDir": "schema",
     "outputDir": "observacode/labextension"
   },
   "jupyter-releaser": {
