@@ -6,12 +6,10 @@ import {
 
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import {
-    // NotebookActions,
     NotebookPanel,
     INotebookModel,
   } from '@jupyterlab/notebook';
 import { DisposableDelegate, IDisposable } from '@lumino/disposable';
-import { ToolbarButton } from '@jupyterlab/apputils';
 import { CodeCell } from '@jupyterlab/cells';
 import {
     ICommandPalette,
@@ -27,6 +25,8 @@ import { ICurrentUser } from '@jupyterlab/user';
 import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 
 import { v4 as uuid } from 'uuid';
+
+import {CellTypeSwitcher} from './cellTypeButton';
 
 
 function newOnMetadataChanged (panel: NotebookPanel, cell: CodeCell, user: ICurrentUser){
@@ -59,21 +59,11 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
     }
     createNew(widget: NotebookPanel, context: DocumentRegistry.IContext<INotebookModel>): void | IDisposable {
 
-        const callback = () => {
+        const dropdownButton = new CellTypeSwitcher(widget.content);
 
-
-        }
-
-        const button = new ToolbarButton({
-            className: 'branch-button',
-            label: 'Save Exercise',
-            onClick: callback,
-            tooltip: 'Save a new exercise'
-        })
-
-        widget.toolbar.insertItem(10, 'branch', button);
+        widget.toolbar.insertItem(10, 'type', dropdownButton);
         return new DisposableDelegate(() => {
-            button.dispose();
+            dropdownButton.dispose();
         }) 
     }
 }
@@ -91,6 +81,7 @@ function saveExercise(app: JupyterFrontEnd){
         console.log('save exercise fn');
         const {shell} = app;
         const nbPanel = shell.currentWidget as NotebookPanel;
+
 
         if (nbPanel.model?.metadata.has('exerciseID')){
             alert("Exercise ID already exists");
