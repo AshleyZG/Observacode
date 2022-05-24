@@ -58,7 +58,9 @@
     "@jupyterlab/coreutils": "^5.1.0",
     "@jupyterlab/notebook": "^3.4.2",
     "@jupyterlab/services": "^6.1.0",
-    "@jupyterlab/user": "^4.0.0-alpha.2"
+    "@jupyterlab/user": "^4.0.0-alpha.2",
+    "y-websocket": "^1.4.3",
+    "yjs": "^13.5.38"
   },
   "devDependencies": {
     "@jupyterlab/builder": "4.0.0-alpha.10",
