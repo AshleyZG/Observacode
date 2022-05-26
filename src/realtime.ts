@@ -8,6 +8,7 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import {
     NotebookPanel,
     INotebookModel,
+    // NotebookActions,
   } from '@jupyterlab/notebook';
 import { DisposableDelegate, IDisposable } from '@lumino/disposable';
 import {
@@ -27,16 +28,42 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
 
         function callback(){
             const ydoc = new Y.Doc();
-            const source = ydoc.getText('mysource');
+
             const websocketProvider = new WebsocketProvider(
                 'ws://localhost:1234', 'count-demo', ydoc
             );
-            (widget.model?.sharedModel.getCell(2) as YCodeCell).setSource("");
-            (widget.model!.sharedModel.getCell(2) as YCodeCell).ysource.applyDelta(source.toDelta());
+            websocketProvider.connect();
 
-            source.observe(event => {
-                (widget.model!.sharedModel.getCell(2) as YCodeCell).ysource.applyDelta(event.delta);
+            const source = ydoc.getMap('shared');
+            for (var cell of widget.content.widgets){
+                cell.model.sharedModel.setSource("");
+            }
+
+            const keyCellMap = new Map<string, number>();
+
+            ydoc.on('update', (update, origin, doc) => {
+                console.log('todo');
+                console.log(source.toJSON());
+
+                for (const key of source.keys()){
+                    console.log(key);
+                    if (keyCellMap.has(key)){
+                        console.log('todo');
+                    }else{
+                        console.log('todo');
+                        keyCellMap.set(key, keyCellMap.size);
+                        // make sure we have enough cells
+                        if (widget.content.widgets.length<keyCellMap.size){
+                            var newCell = YCodeCell.create();
+                            widget.model?.sharedModel.insertCell(widget.content.widgets.length, newCell);
+                        }
+                    }
+                    (widget.model?.sharedModel.getCell(keyCellMap.get(key)!) as YCodeCell).setSource((source.get(key) as Y.Text).toString());
+
+                }
+
             })
+
             console.log(websocketProvider);
 
         }
