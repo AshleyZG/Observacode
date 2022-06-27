@@ -3,3 +3,17 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+
+.name-label {
+    background-color: #e7e7e7;
+    color: black;
+}
+
+.select-box {
+    background-color: aqua;
+    border-color: black;
+    display: inline-block;
+    width: 10px;
+    height: 5px;
+    /* float: left; */
+}

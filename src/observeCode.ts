@@ -20,19 +20,19 @@ import { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import { ToolbarButton } from '@jupyterlab/apputils';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
-import { SolutionViewModel, SolutionViewWidget } from './solutionWidget';
+import { ObserveViewModel, ObserveViewWidget } from './observeWidget';
 
 
 class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel>{
     createNew(widget: NotebookPanel, context: DocumentRegistry.IContext<INotebookModel>): void | IDisposable {
 
         function callback(){
-            const keySolutionWidgetMap = new Map<string, SolutionViewWidget>();
+            const keySolutionWidgetMap = new Map<string, ObserveViewWidget>();
 
             widget.content.widgets.forEach((cell, index) => {
 
-                var solutionViewModel = new SolutionViewModel();
-                var solutionViewWidget = new SolutionViewWidget(solutionViewModel);
+                var solutionViewModel = new ObserveViewModel();
+                var solutionViewWidget = new ObserveViewWidget(solutionViewModel);
 
                 keySolutionWidgetMap.set(cell.model.metadata.get('cellID') as string, solutionViewWidget);
 
@@ -64,12 +64,14 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
                             if (key.endsWith('-output')){
                                 const kkey = key.slice(0, -7);
                                 if (keyCellMap.has(kkey)){
-                                    (keySolutionWidgetMap.get(kkey) as SolutionViewWidget).model.setOutput(studentName, ((event.currentTarget as Y.Map<any>).get(key) as Y.Array<any>).toArray());
+                                    var solutionViewWidget = keySolutionWidgetMap.get(kkey) as ObserveViewWidget;
+                                    solutionViewWidget.model.setOutput(studentName, ((event.currentTarget as Y.Map<any>).get(key) as Y.Array<any>).toArray());
+                                    // solutionViewWidget.model.addEvent(studentName, true);
                                 }
                             }else{
                                 if (keyCellMap.has(key)){
                                     const masterCopy = widget.content.widgets[keyCellMap.get(key) as number].model.sharedModel.getSource();
-                                    var solutionViewWidget = keySolutionWidgetMap.get(key) as SolutionViewWidget;
+                                    var solutionViewWidget = keySolutionWidgetMap.get(key) as ObserveViewWidget;
                                     solutionViewWidget.model.setSolution(studentName, ((event.currentTarget as Y.Map<any>).get(key) as Y.Text).toString(), masterCopy);
                                 }
                             }
@@ -85,29 +87,29 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
 
         }
         const button = new ToolbarButton({
-            className: 'sharing-button',
-            label: 'Real Time View',
+            className: 'observe-button',
+            label: 'Observe Code',
             onClick: callback,
-            tooltip: 'Start Sharing'
+            tooltip: `Observe students' progress`
         });
 
-        widget.toolbar.insertItem(11, 'realtimebutton', button);
+        widget.toolbar.insertItem(12, 'observebutton', button);
         return new DisposableDelegate(() => {
             button.dispose();
           });
     }
 }
 
-const pluginShare: JupyterFrontEndPlugin<void> = {
-    id: 'ovservacode:share-plugin',
+const pluginObserveCode: JupyterFrontEndPlugin<void> = {
+    id: 'ovservacode:observe-plugin',
     autoStart: true,
     requires: [ICurrentUser, ICommandPalette, IRenderMimeRegistry, ILayoutRestorer],
-    activate: activatePluginTest
+    activate: activatePlugin
 }
   
 
 
-function activatePluginTest(
+function activatePlugin(
     app: JupyterFrontEnd,
     user: ICurrentUser,
     palette: ICommandPalette,
@@ -118,4 +120,4 @@ function activatePluginTest(
 
 }
   
-export default pluginShare;
+export default pluginObserveCode;

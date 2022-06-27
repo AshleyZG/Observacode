@@ -6,6 +6,7 @@ import {
 import { requestAPI } from './handler';
 import plugintest from './toolbar';
 import pluginShare from './realtime';
+import pluginObserveCode from './observeCode';
 /**
  * Initialization data for the observacode extension.
  */
@@ -28,5 +29,5 @@ const plugin: JupyterFrontEndPlugin<void> = {
 };
 
 
-export default [plugin, plugintest, pluginShare];
+export default [plugin, plugintest, pluginShare, pluginObserveCode];
 // export {plugin, plugintest};
