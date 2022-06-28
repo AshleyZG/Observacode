@@ -11,6 +11,7 @@ export interface historyEvent{
     correct: boolean;
     tooltip: string;
     eMessage: any;
+    // passTest: boolean;
 };
 
 interface TimeLineProps {
@@ -18,6 +19,7 @@ interface TimeLineProps {
     height?: number;
     lanes: string[];
     events: Map<string, historyEvent[]>;
+    typingStatus: Map<string, boolean>;
     timelineStart?: number;
     timelineEnd?: number;
     dotOnClick: (event:React.MouseEvent<SVGRectElement>) => void;
@@ -159,6 +161,14 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
                                 />
                             </g>
                         })}
+                        <circle 
+                            r={10}
+                            // height={10}
+                            cx={this.width-5}
+                            cy={this.height/this.state.lanes.length*((this.state.lanes.indexOf(name))+0.5)}
+                            fill={'gray'}
+                            display={this.props.typingStatus.get(name)? 'block': 'none'}
+                        />
                     </g>
                 })}
 

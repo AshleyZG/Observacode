@@ -16,6 +16,7 @@ class ObserveViewModel extends VDomModel {
     nAccEdits: Map<string, number> = new Map();
     lastCommitEdits: Map<string, number> = new Map();
     eMessages: {[errorType: string]: any[]} = {}
+    typingStatus: Map<string, boolean> = new Map();
 
     constructor(displayAll: boolean = false){
         super();
@@ -50,12 +51,23 @@ class ObserveViewModel extends VDomModel {
             }
             this.startTime.set(name, Date.now());
         }
+        this.typingStatus.set(name, true);
+        setTimeout(()=>{this.typingStatus.set(name, false)}, 5000);
+    }
+
+    setTypingStatus(name: string, value: boolean){
+        const oldValue = this.typingStatus.get(name);
+        if (oldValue!==value){
+            this.typingStatus.set(name, value);
+            this.stateChanged.emit();
+        }
+        
     }
 
     setOutput(name: string, outputs: any[]){
         this.outputs.set(name, outputs);
         if (outputs.length>0){
-            this.addEvent(name, true);
+            this.addEvent(name);
         }
         this.stateChanged.emit();
     }
@@ -74,10 +86,13 @@ class ObserveViewModel extends VDomModel {
 
     addEvent(
         name: string,
-        correct: boolean,
+        // correct: boolean,
     ){
 
-        const emessage = this.outputs.get(name)?.slice(-1)[0];
+        const output = this.outputs.get(name)?.slice(-1)[0];
+        const emessage = output.output;
+        const correct = output.passTest;
+        // const emessage = this.outputs.get(name)?.slice(-1)[0];
 
         const event: historyEvent = {
             value: this.solutions.get(name)!,
@@ -85,7 +100,8 @@ class ObserveViewModel extends VDomModel {
             startTime: Date.now() - this.startTime.get(name)!,
             correct: correct,
             tooltip: this.solutions.get(name)!,
-            eMessage: emessage
+            eMessage: emessage,
+            // passTest: passTest
         }
         
         // set last commit edit number
@@ -139,6 +155,7 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                                 height={8000}
                                 lanes={this.model.activeUsers}
                                 events={this.model.events}
+                                typingStatus={this.model.typingStatus}
                                 tooltipMode={true}
                                 dotOnClick={()=> {}}
                                 dotOnDragStart={()=> {}}
