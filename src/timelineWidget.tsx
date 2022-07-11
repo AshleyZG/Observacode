@@ -2,6 +2,8 @@ import React from 'react';
 import * as d3 from 'd3';
 
 import { scaleLog } from 'd3-scale';
+import { renderToString } from 'react-dom/server';
+import SyntaxHighlighter from 'react-syntax-highlighter';
 
 export interface historyEvent{
     value: string;
@@ -85,13 +87,12 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
                 .on("mouseover", function(){
                     if (!scope.props.tooltipMode) return;
                     // set html for tooltip
-                    // const html = hljs.highlight(code, {language: 'python'}).value
-                    const html = code;
+                    const node = (<SyntaxHighlighter language='python'>{code}</SyntaxHighlighter>)
+                    const html = renderToString(node);
                     return tooltip.style("visibility", "visible")
                         .html(html);})
                 .on("mousemove", function(event){
                     if (!scope.props.tooltipMode) return;
-                    // console.log('----');
                     return tooltip.style("top", (event.clientY)+"px").style("left",(event.clientX)+"px");})
                 .on("mouseout", function(){
                     if (!scope.props.tooltipMode) return;

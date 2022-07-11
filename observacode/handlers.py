@@ -2,7 +2,6 @@ from genericpath import exists
 import json
 from lib2to3.pgen2.token import NEWLINE
 import os
-import this
 from unittest.mock import patch
 from urllib.parse import urlparse
 from jupyter_server.base.handlers import APIHandler

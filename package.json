@@ -63,6 +63,7 @@
     "@jupyterlab/user": "^4.0.0-alpha.2",
     "@mui/material": "^5.8.7",
     "@types/d3": "^7.4.0",
+    "@types/react-syntax-highlighter": "^15.5.2",
     "d3": "^7.1.1",
     "react-code-blocks": "^0.0.9-0",
     "y-websocket": "^1.4.3",
@@ -70,6 +71,7 @@
   },
   "devDependencies": {
     "@jupyterlab/builder": "4.0.0-alpha.10",
+    "@types/react-dom": "^18.0.6",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.8.1",
     "@typescript-eslint/parser": "^4.8.1",
