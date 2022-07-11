@@ -1,9 +1,10 @@
 import { VDomRenderer, VDomModel, UseSignal } from '@jupyterlab/apputils';
 
 import React from 'react';
-// import { validate } from 'uuid';
-import { TimeLine, historyEvent } from './timelineWidget';
-import { ClusterWidget } from './clusterWidget';
+import { TimeLine, historyEvent, typingActivity } from './timelineWidget';
+import { ClusterWidget, ErrorMessage, OverCodeCluster, OverCodeClusterWidget } from './clusterWidget';
+import { ConfigPanel } from './configWidget';
+import { requestAPI } from './handler';
 
 class ObserveViewModel extends VDomModel {
 
@@ -12,15 +13,52 @@ class ObserveViewModel extends VDomModel {
     activeUsers: string[] = [];
     displayAll: boolean;
     events: Map<string, historyEvent[]> = new Map();
+    typingActivities: Map<string, typingActivity[]> = new Map();
     startTime: Map<string, number> = new Map();
     nAccEdits: Map<string, number> = new Map();
     lastCommitEdits: Map<string, number> = new Map();
-    eMessages: {[errorType: string]: any[]} = {}
+    eMessages: {[errorType: string]: ErrorMessage[]} = {};
     typingStatus: Map<string, boolean> = new Map();
+    typingActivityMode: boolean = false;
+    overCodeClusters: {[cluster_id: number]: OverCodeCluster} = {};
+    overCodeCandidates: {[name: string]: string[]} = {};
+    overCodeResults: {[key:string]: number} = {};
+    clusterIDs: number[] = [];
 
     constructor(displayAll: boolean = false){
         super();
         this.displayAll = displayAll;
+        this.setOverCodeResult();
+        // this.updateOverCodeResults();
+    }
+
+    setOverCodeResult(){
+        requestAPI<any>('get_overcode_results')
+        .then(data => {
+            console.log(data);
+            var overcode_result = data.data;
+            for (const cluster of overcode_result){
+                var cluster_id = cluster.id;
+                if (!(this.clusterIDs.includes(cluster_id))){
+                    this.clusterIDs.push(cluster_id);
+                }
+                for (const member of cluster.members){
+                    this.overCodeResults[member] = cluster_id;
+                }
+            }
+            this.stateChanged.emit();
+        })
+        .catch(reason => {
+            console.error(
+                `The observacode server extension appears to be missing.\n${reason}`
+            );
+        });
+
+    }
+
+    setTypingActivityMode(){
+        this.typingActivityMode = this.typingActivityMode? false: true;
+        this.stateChanged.emit();
     }
 
     setSolution(name:string, solution: string, masterCopy: string){
@@ -52,24 +90,17 @@ class ObserveViewModel extends VDomModel {
             this.startTime.set(name, Date.now());
         }
         this.typingStatus.set(name, true);
+        this.addTypingActivity(name);
         setTimeout(()=>{this.typingStatus.set(name, false)}, 5000);
     }
 
-    setTypingStatus(name: string, value: boolean){
-        const oldValue = this.typingStatus.get(name);
-        if (oldValue!==value){
-            this.typingStatus.set(name, value);
-            this.stateChanged.emit();
-        }
-        
-    }
 
     setOutput(name: string, outputs: any[]){
         this.outputs.set(name, outputs);
         if (outputs.length>0){
             this.addEvent(name);
         }
-        this.stateChanged.emit();
+        // this.stateChanged.emit();
     }
 
     parseErrorMessage(eMessage: string){
@@ -84,15 +115,24 @@ class ObserveViewModel extends VDomModel {
         return {errorType, lineIndex};
     }
 
+    addTypingActivity(name: string){
+        const activity = {
+            timestamp: Date.now() - this.startTime.get(name)!
+        }
+
+        if (!this.typingActivities.has(name)){
+            this.typingActivities.set(name, [])
+        }
+        this.typingActivities.get(name)?.push(activity);
+    }
+
     addEvent(
         name: string,
-        // correct: boolean,
     ){
 
         const output = this.outputs.get(name)?.slice(-1)[0];
         const emessage = output.output;
         const correct = output.passTest;
-        // const emessage = this.outputs.get(name)?.slice(-1)[0];
 
         const event: historyEvent = {
             value: this.solutions.get(name)!,
@@ -101,7 +141,6 @@ class ObserveViewModel extends VDomModel {
             correct: correct,
             tooltip: this.solutions.get(name)!,
             eMessage: emessage,
-            // passTest: passTest
         }
         
         // set last commit edit number
@@ -117,17 +156,46 @@ class ObserveViewModel extends VDomModel {
                 eMessage: emessage,
                 eType: errorType,
                 lineIndex: lineIndex,
-                code: this.solutions.get(name)
+                code: this.solutions.get(name)!,
+                name: name,
+                submissionIndex: this.outputs.get(name)!.length-1,
             })
 
+        }else{
+            if (! (name in this.overCodeCandidates)){
+                this.overCodeCandidates[name] = [];
+            }
+            this.overCodeCandidates[name].push(this.solutions.get(name)!);
+            this.updateOverCodeResults(name);
         }
-
-
 
         if (!this.events.has(name)){
             this.events.set(name, [])
         }
         this.events.get(name)?.push(event);
+        this.stateChanged.emit();
+    }
+
+    updateOverCodeResults(name: string){
+
+        var idx = this.overCodeCandidates[name].length-1;
+        var new_name = name.split('@')[0];
+        var key = new_name+'_'+idx;
+        var cluster_id = this.overCodeResults[key];
+        // console.log(key, this.overCodeResults[key]);
+
+        if (! (cluster_id in this.overCodeClusters)){
+            this.overCodeClusters[cluster_id] = {
+                id: cluster_id,
+                // correct: 
+                count: 0,
+                members: []
+            }
+        }
+        // debugger;
+        this.overCodeClusters[cluster_id].members.push(this.overCodeCandidates[name][idx]);
+        this.overCodeClusters[cluster_id].count+=1;
+  
         this.stateChanged.emit();
     }
 }
@@ -142,40 +210,64 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
         this.addClass('sideview');
     }
 
+    setTypingActivityMode(){
+        var scope = this;
+        function fn(){
+            scope.model.setTypingActivityMode();            
+        }
+        return fn;
+    }
+
     render(): JSX.Element {
         const errorTypes = Object.keys(this.model.eMessages);
         return <div> 
             <UseSignal signal={this.model.stateChanged} >
                 {(): JSX.Element => {
                     return <div>
-
+                        {/* Configuration panel */}
+                        <div className='configuration'>
+                            <ConfigPanel
+                                typingActivityMode={this.model.typingActivityMode}
+                                setTypingActivityMode={this.setTypingActivityMode()}
+                            />
+                        </div>
+                        {/* Timeline view */}
                         <div className='timeline'>
                             <TimeLine
                                 width={800}
                                 height={8000}
                                 lanes={this.model.activeUsers}
                                 events={this.model.events}
+                                typingActivities={this.model.typingActivities}
                                 typingStatus={this.model.typingStatus}
                                 tooltipMode={true}
+                                typingActivityMode={this.model.typingActivityMode}
                                 dotOnClick={()=> {}}
                                 dotOnDragStart={()=> {}}
                                 dotOnHover={()=> {}}
                             />
                         </div>
+                        {/* Error view */}
                         <div>
                             {
                                 errorTypes.map((value) => {
                                     return <div>
-                                        {/* <div>{value}</div> */}
                                         <ClusterWidget
                                             errorType={value}
                                             errorMessages={this.model.eMessages[value]}
+                                            events={this.model.events}
                                         />
                                     </div>
                                 })
                             }
                         </div>
-
+                        {/* OverCode cluster view */}
+                        <div>
+                            <OverCodeClusterWidget
+                                clusterIDs={this.model.clusterIDs}
+                                clusters={this.model.overCodeClusters}
+                            />
+                        </div>
                     </div>
                 }}
             </UseSignal>

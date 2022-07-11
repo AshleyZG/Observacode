@@ -66,7 +66,6 @@ class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel
                                 if (keyCellMap.has(kkey)){
                                     var solutionViewWidget = keySolutionWidgetMap.get(kkey) as ObserveViewWidget;
                                     solutionViewWidget.model.setOutput(studentName, ((event.currentTarget as Y.Map<any>).get(key) as Y.Array<any>).toArray());
-                                    // solutionViewWidget.model.addEvent(studentName, true);
                                 }
                             }else{
                                 if (keyCellMap.has(key)){

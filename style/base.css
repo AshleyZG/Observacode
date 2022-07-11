@@ -17,3 +17,9 @@
     height: 5px;
     /* float: left; */
 }
+
+.overcode-cluster-members {
+    /* max-height: 0px; */
+    /* visibility: hidden; */
+    display: none;
+}

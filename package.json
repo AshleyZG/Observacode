@@ -54,11 +54,14 @@
     "watch:labextension": "jupyter labextension watch ."
   },
   "dependencies": {
+    "@emotion/react": "^11.9.3",
+    "@emotion/styled": "^11.9.3",
     "@jupyterlab/application": "^3.1.0",
     "@jupyterlab/coreutils": "^5.1.0",
     "@jupyterlab/notebook": "^3.4.2",
     "@jupyterlab/services": "^6.1.0",
     "@jupyterlab/user": "^4.0.0-alpha.2",
+    "@mui/material": "^5.8.7",
     "@types/d3": "^7.4.0",
     "d3": "^7.1.1",
     "react-code-blocks": "^0.0.9-0",

@@ -11,14 +11,18 @@ export interface historyEvent{
     correct: boolean;
     tooltip: string;
     eMessage: any;
-    // passTest: boolean;
 };
+
+export interface typingActivity{
+    timestamp: number;
+}
 
 interface TimeLineProps {
     width?: number;
     height?: number;
     lanes: string[];
     events: Map<string, historyEvent[]>;
+    typingActivities: Map<string, typingActivity[]>;
     typingStatus: Map<string, boolean>;
     timelineStart?: number;
     timelineEnd?: number;
@@ -26,6 +30,7 @@ interface TimeLineProps {
     dotOnDragStart: (event: React.DragEvent<SVGRectElement>) => void;
     dotOnHover: (event: React.MouseEvent<SVGRectElement>) => void;
     tooltipMode: boolean;
+    typingActivityMode: boolean;
 };
 interface TimeLineState {
     lanes: string[];
@@ -79,7 +84,6 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
                 d3.select(this)
                 .on("mouseover", function(){
                     if (!scope.props.tooltipMode) return;
-                    // console.log('---');
                     // set html for tooltip
                     // const html = hljs.highlight(code, {language: 'python'}).value
                     const html = code;
@@ -118,7 +122,7 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
 
         const logScaler = scaleLog()
             .domain([1, 1000])
-            .range([0,30])
+            .range([10,40])
 
         return <svg
             width={this.width}
@@ -161,14 +165,27 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
                                 />
                             </g>
                         })}
+                        {(this.props.typingActivityMode && this.props.typingActivities.has(name)? this.props.typingActivities.get(name)!: []).map((activity: typingActivity, index: number) => {
+                            return <g key={index}>
+                                <rect
+                                    className='typing-activity'
+                                    height={5}
+                                    width={0.5}
+                                    x={timeScaler(activity.timestamp+1)}
+                                    y={this.height/this.state.lanes.length*((this.state.lanes.indexOf(name))+1)-5}
+                                    fill={'black'}
+                                />
+                            </g>
+                        })}
+
                         <circle 
                             r={10}
-                            // height={10}
                             cx={this.width-5}
                             cy={this.height/this.state.lanes.length*((this.state.lanes.indexOf(name))+0.5)}
                             fill={'gray'}
                             display={this.props.typingStatus.get(name)? 'block': 'none'}
                         />
+
                     </g>
                 })}
 
