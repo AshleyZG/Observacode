@@ -25,6 +25,7 @@ class ObserveViewModel extends VDomModel {
     overCodeResults: {[key:string]: number} = {};
     rawOverCodeResults: any[] = [];
     clusterIDs: number[] = [];
+    // overCodeErrorCluster: OverCodeCluster;
 
     constructor(displayAll: boolean = false){
         super();
@@ -183,22 +184,39 @@ class ObserveViewModel extends VDomModel {
         var cluster_id = this.overCodeResults[key];
         // console.log(key, this.overCodeResults[key]);
 
-        if (!(this.clusterIDs.includes(cluster_id))){
+        if (this.rawOverCodeResults[cluster_id-1].correct && !(this.clusterIDs.includes(cluster_id))){
             this.clusterIDs.push(cluster_id);
+        }else if(!(this.clusterIDs.includes(-1))){
+            this.clusterIDs.push(-1);
         }
+        // if (){
+        // }
 
 
-        if (! (cluster_id in this.overCodeClusters)){
+        if (this.rawOverCodeResults[cluster_id-1].correct && ! (cluster_id in this.overCodeClusters)){
             this.overCodeClusters[cluster_id] = {
                 id: cluster_id,
                 correct: this.rawOverCodeResults[cluster_id-1].correct,
                 count: 0,
                 members: []
             }
+        }else if (! (-1 in this.overCodeClusters)){
+            this.overCodeClusters[-1] = {
+                id: -1,
+                correct: this.rawOverCodeResults[cluster_id-1].correct,
+                count: 0,
+                members: []
+            }
         }
         // debugger;
-        this.overCodeClusters[cluster_id].members.push(this.overCodeCandidates[name][idx]);
-        this.overCodeClusters[cluster_id].count+=1;
+        if (this.rawOverCodeResults[cluster_id-1].correct){
+            this.overCodeClusters[cluster_id].members.push(this.overCodeCandidates[name][idx]);
+            this.overCodeClusters[cluster_id].count+=1;    
+        }else{
+            this.overCodeClusters[-1].members.push(this.overCodeCandidates[name][idx]);
+            this.overCodeClusters[-1].count+=1;    
+
+        }
   
         this.stateChanged.emit();
     }
