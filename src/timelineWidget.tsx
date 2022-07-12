@@ -87,7 +87,7 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
                 .on("mouseover", function(){
                     if (!scope.props.tooltipMode) return;
                     // set html for tooltip
-                    const node = (<SyntaxHighlighter language='python'>{code}</SyntaxHighlighter>)
+                    const node = (<SyntaxHighlighter language='python'>{code}</SyntaxHighlighter>);
                     const html = renderToString(node);
                     return tooltip.style("visibility", "visible")
                         .html(html);})
@@ -123,7 +123,8 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
 
         const logScaler = scaleLog()
             .domain([1, 1000])
-            .range([10,40])
+            // .range([10,40])
+            .range([this.height/(this.state.lanes.length+1)*0.25, this.height/(this.state.lanes.length+1)])
 
         return <svg
             width={this.width}

@@ -23,6 +23,7 @@ class ObserveViewModel extends VDomModel {
     overCodeClusters: {[cluster_id: number]: OverCodeCluster} = {};
     overCodeCandidates: {[name: string]: string[]} = {};
     overCodeResults: {[key:string]: number} = {};
+    rawOverCodeResults: any[] = [];
     clusterIDs: number[] = [];
 
     constructor(displayAll: boolean = false){
@@ -37,11 +38,9 @@ class ObserveViewModel extends VDomModel {
         .then(data => {
             console.log(data);
             var overcode_result = data.data;
+            this.rawOverCodeResults = data.data;
             for (const cluster of overcode_result){
                 var cluster_id = cluster.id;
-                if (!(this.clusterIDs.includes(cluster_id))){
-                    this.clusterIDs.push(cluster_id);
-                }
                 for (const member of cluster.members){
                     this.overCodeResults[member] = cluster_id;
                 }
@@ -184,10 +183,15 @@ class ObserveViewModel extends VDomModel {
         var cluster_id = this.overCodeResults[key];
         // console.log(key, this.overCodeResults[key]);
 
+        if (!(this.clusterIDs.includes(cluster_id))){
+            this.clusterIDs.push(cluster_id);
+        }
+
+
         if (! (cluster_id in this.overCodeClusters)){
             this.overCodeClusters[cluster_id] = {
                 id: cluster_id,
-                // correct: 
+                correct: this.rawOverCodeResults[cluster_id-1].correct,
                 count: 0,
                 members: []
             }
@@ -235,7 +239,7 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                         <div className='timeline'>
                             <TimeLine
                                 width={800}
-                                height={8000}
+                                height={4000}
                                 lanes={this.model.activeUsers}
                                 events={this.model.events}
                                 typingActivities={this.model.typingActivities}
@@ -263,10 +267,16 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                         </div>
                         {/* OverCode cluster view */}
                         <div>
-                            <OverCodeClusterWidget
-                                clusterIDs={this.model.clusterIDs}
-                                clusters={this.model.overCodeClusters}
-                            />
+                            {
+                                this.model.clusterIDs.map((cluster_id: number) => {
+                                    return <div>
+                                        <OverCodeClusterWidget
+                                            cluster_id={cluster_id}
+                                            cluster={this.model.overCodeClusters[cluster_id]}  
+                                        />
+                                    </div>
+                                })
+                            }
                         </div>
                     </div>
                 }}

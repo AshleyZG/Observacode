@@ -76,7 +76,10 @@ export class ClusterWidget extends React.Component<ClusterProps, ClusterState>{
             </div>
             {/* Mirror timeline of selected person */}
             <div>
-                <svg>
+                <svg
+                    width={300}
+                    height={40}
+                >
                     <g >
                         <path className='x-axis' d={`M0 20 L200 20`} stroke={"black"}></path>
                     </g>
@@ -125,15 +128,17 @@ export class ClusterWidget extends React.Component<ClusterProps, ClusterState>{
 
 export interface OverCodeCluster {
     id: number; // id of the cluster
-    // correct: boolean; // is the cluster correct?
+    correct: boolean; // is the cluster correct?
     count: number; // how many solutions are in this cluster?
     members: string[]; // solutions in this cluster
 }
 interface OverCodeClusterProps {
-    clusterIDs: number[];
-    clusters: {[cluster_id: number]: OverCodeCluster;}
+    // clusterIDs: number[];
+    cluster_id: number;
+    cluster: OverCodeCluster;
 };
 interface OverCodeClusterState {
+    selectedCode: string;
 };
 
 
@@ -141,35 +146,38 @@ interface OverCodeClusterState {
 export class OverCodeClusterWidget extends React.Component<OverCodeClusterProps, OverCodeClusterState>{
     constructor(props: OverCodeClusterProps){
         super(props);
+        this.state = {
+            selectedCode: this.props.cluster.members[0],
+        }
+        this.selectCode = this.selectCode.bind(this);
     }
 
-    uncollapseCluster(event: React.MouseEvent){
-        var content = event.currentTarget.nextElementSibling as HTMLElement;
-        if (content.style.display==='none'){
-            // content.style.maxHeight = '0';
-            // content.style.visibility = 'visible';
-            content.style.display = 'block';
-        }else{
-            // content.style.maxHeight = content.scrollHeight+'px';
-            content.style.display = 'none';
-        }
+    selectCode(event: React.MouseEvent){
+        var index = parseInt(event.currentTarget.getAttribute('data-index')!);
+        this.setState({selectedCode: this.props.cluster.members[index]});
     }
+
     render(): React.ReactNode {
-        return <div className='overcode-cluster'>
-            {this.props.clusterIDs.map((cluster_id: number, index: number) => {
-                if (cluster_id in this.props.clusters){
-                    return <div className='overcode-cluster'>
-                    <button className='collapsible' onClick={this.uncollapseCluster}>Cluster {cluster_id} {this.props.clusters[cluster_id].count}</button>
-                    <div className='overcode-cluster-members'>
-                        {this.props.clusters[cluster_id].members.map((member: string, index: number) => {
-                            return <p>{member}</p>
-                        })}
-                    </div>
-                </div>
-                }else{
-                    return <div/>
-                }
-            })}
+
+        return <div >
+            {/* cluster id */}
+            <span>Cluster {this.props.cluster_id}, {this.props.cluster.count} solutions</span>
+
+            {/* select slider */}
+            <div>
+                {this.props.cluster.members.map((value, index) => {
+                    return <div className='select-box' data-index={index} onMouseOver={this.selectCode}></div>
+                })}
+            </div>
+
+            <div className='code-editor-preview'>
+                <CodeBlock
+                    text={this.state.selectedCode}
+                    language={"python"}
+                    // highlight={String(this.state.selectedErrorMessage.lineIndex)}
+                />
+            </div>
+
         </div>
     }
 }
