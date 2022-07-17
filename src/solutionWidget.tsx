@@ -1,5 +1,6 @@
-import { VDomRenderer, VDomModel, UseSignal } from '@jupyterlab/apputils';
-import { CodeBlock } from "react-code-blocks";
+// import { VDomRenderer, VDomModel, UseSignal } from '@jupyterlab/apputils';
+import { VDomRenderer, VDomModel } from '@jupyterlab/apputils';
+// import { CodeBlock } from "react-code-blocks";
 
 import React from 'react';
 
@@ -57,33 +58,34 @@ class SolutionViewWidget extends VDomRenderer<SolutionViewModel> {
     }
 
     render(): any {
-        return <div> 
-            <UseSignal signal={this.model.stateChanged} >
-                {(): JSX.Element => {
-                    return <div>
-                        {
-                            this.model.activeUsers.map((name) => {
-                                return <div>
-                                    <div className='name-label'>
-                                        <span>{name}</span>
-                                    </div>
-                                    <CodeBlock
-                                    text={this.model.solutions.get(name)}
-                                    language={"python"}
-                                    showLineNumbers={false}
-                                    />
-                                    <div  className='output'>
-                                        <span>{this.model.outputs.get(name)?.slice(-1)[0]}</span>
-                                    </div>
-                                </div>
+        return <div></div>
+        // return <div> 
+        //     <UseSignal signal={this.model.stateChanged} >
+        //         {(): JSX.Element => {
+        //             return <div>
+        //                 {
+        //                     this.model.activeUsers.map((name) => {
+        //                         return <div>
+        //                             <div className='name-label'>
+        //                                 <span>{name}</span>
+        //                             </div>
+        //                             <CodeBlock
+        //                             text={this.model.solutions.get(name)}
+        //                             language={"python"}
+        //                             showLineNumbers={false}
+        //                             />
+        //                             <div  className='output'>
+        //                                 <span>{this.model.outputs.get(name)?.slice(-1)[0]}</span>
+        //                             </div>
+        //                         </div>
 
-                            })
-                        }
-                    </div>
-                }}
-            </UseSignal>
+        //                     })
+        //                 }
+        //             </div>
+        //         }}
+        //     </UseSignal>
 
-        </div> 
+        // </div> 
 
     }
 }
