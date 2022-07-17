@@ -56,7 +56,7 @@ class SolutionViewWidget extends VDomRenderer<SolutionViewModel> {
 
     }
 
-    render(): JSX.Element {
+    render(): any {
         return <div> 
             <UseSignal signal={this.model.stateChanged} >
                 {(): JSX.Element => {
@@ -78,19 +78,6 @@ class SolutionViewWidget extends VDomRenderer<SolutionViewModel> {
                                 </div>
 
                             })
-                            // Array.from(this.model.solutions.entries(), ([key, value]) => {
-                                
-                            //     return <div>
-                            //         <div className='name-label'>
-                            //             <span>{key}</span>
-                            //         </div>
-                            //         <CodeBlock
-                            //         text={value}
-                            //         language={"python"}
-                            //         showLineNumbers={false}
-                            //     />
-                            //     </div>
-                            // })
                         }
                     </div>
                 }}
