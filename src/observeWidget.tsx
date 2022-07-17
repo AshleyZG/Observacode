@@ -240,11 +240,11 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
         return fn;
     }
 
-    render(): JSX.Element {
+    render(): any {
         const errorTypes = Object.keys(this.model.eMessages);
         return <div> 
             <UseSignal signal={this.model.stateChanged} >
-                {(): JSX.Element => {
+                {(): any => {
                     return <div>
                         {/* Configuration panel */}
                         <div className='configuration'>
