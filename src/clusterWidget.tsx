@@ -1,7 +1,7 @@
 import React from 'react';
 import { CodeBlock } from "react-code-blocks";
 import { historyEvent } from './timelineWidget';
-import { scaleLog } from 'd3-scale';
+// import { scaleLog } from 'd3-scale';
 
 /**
  * ClusterWidget<ClusterProps, ClusterState>: React.Component
@@ -66,60 +66,9 @@ export class ClusterWidget extends React.Component<ClusterProps, ClusterState>{
     }
 
     render(): React.ReactNode {
-        var domainStart: number | undefined = undefined;
-        var domainEnd: number | undefined = undefined;
-        var names: string[] = Array.from(this.props.events.keys());
-        
-        names.forEach((name: string) => {
-            if (!this.props.events.has(name) || this.props.events.get(name)!.length===0){
-                return;
-            }
-            // set domainStart
-            domainStart = domainStart===undefined? this.props.events.get(name)![0].startTime : Math.min(domainStart, this.props.events.get(name)![0].startTime);
-            // set domainEnd
-            domainEnd = domainEnd===undefined? this.props.events.get(name)![this.props.events.get(name)!.length-1].startTime : Math.max(domainEnd, this.props.events.get(name)![this.props.events.get(name)!.length-1].startTime)
-        })
-
-        const timeScaler = scaleLog()
-            .domain((domainStart!==undefined && domainEnd!==undefined)? [domainStart+1, domainEnd+1] : [1,10])
-            .range([2, 200-2])
-
-        const logScaler = scaleLog()
-            .domain([1, 1000])
-            .range([5, 20])
-
         return <div className='code-group-block'>
             {/* Error type */}
             <span>{this.props.errorType}</span>
-            {/* Mirror timeline of selected person */}
-            <div>
-                <svg
-                    width={300}
-                    height={40}
-                >
-                    <g >
-                        <path className='x-axis' d={`M0 20 L200 20`} stroke={"black"}></path>
-                    </g>
-                    <g>
-                        {this.props.events.get(this.state.selectedErrorMessage.name)?.map((event: historyEvent, index: number) => {
-                            return <g key={index}>
-                            <rect 
-                                className='event-item'
-                                height={logScaler(event.radius)} 
-                                width={1}
-                                x={timeScaler(event.startTime+1)} 
-                                y={20-logScaler(event.radius)}
-                                data-index={index}
-                                data-title={name}
-                                data-tooltip={event.tooltip}
-                                fill={event.correct? 'green': 'red'}
-                                fillOpacity={index===this.state.selectedErrorMessage.submissionIndex? '100%' : '20%'}
-                            />
-                        </g>
-                        })}
-                    </g>
-                </svg>
-            </div>
             {/* Error message of selected example */}
             <div><span>{this.state.selectedErrorMessage.eMessage}</span></div>
             {/* Error code */}
