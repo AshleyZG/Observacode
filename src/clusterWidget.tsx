@@ -24,22 +24,45 @@ interface ClusterProps {
 };
 interface ClusterState {
     selectedErrorMessage: ErrorMessage,
+    selectedIndex: number,
 };
 
 export class ClusterWidget extends React.Component<ClusterProps, ClusterState>{
+
     constructor(props: ClusterProps){
         super(props);
 
         this.state = {
             selectedErrorMessage: this.props.errorMessages[0],
+            selectedIndex: 0,
         }
 
-        this.selectCode = this.selectCode.bind(this);
+        this.next = this.next.bind(this);
+        this.previous = this.previous.bind(this);
     }
 
-    selectCode(event: React.MouseEvent){
-        var index = parseInt(event.currentTarget.getAttribute('data-index')!);
-        this.setState({selectedErrorMessage: this.props.errorMessages[index]});
+    next(){
+        var index = this.state.selectedIndex;
+        index+=1;
+        if (index===this.props.errorMessages.length){
+            index = 0;
+        }
+        this.setState({
+            selectedIndex: index,
+            selectedErrorMessage: this.props.errorMessages[index]
+        });
+    }
+
+    previous(){
+        var index = this.state.selectedIndex;
+        index-=1;
+        if (index===-1){
+            index += this.props.errorMessages.length;
+        }
+        this.setState({
+            selectedIndex: index,
+            selectedErrorMessage: this.props.errorMessages[index]
+        });
     }
 
     render(): React.ReactNode {
@@ -65,15 +88,9 @@ export class ClusterWidget extends React.Component<ClusterProps, ClusterState>{
             .domain([1, 1000])
             .range([5, 20])
 
-        return <div>
+        return <div className='code-group-block'>
             {/* Error type */}
             <span>{this.props.errorType}</span>
-            {/* Select bar of all errors */}
-            <div>
-                {this.props.errorMessages.map((value, index) => {
-                    return <div className='select-box' data-index={index} onMouseOver={this.selectCode}></div>
-                })}
-            </div>
             {/* Mirror timeline of selected person */}
             <div>
                 <svg
@@ -111,7 +128,13 @@ export class ClusterWidget extends React.Component<ClusterProps, ClusterState>{
                     text={this.state.selectedErrorMessage.code}
                     language={"python"}
                     highlight={String(this.state.selectedErrorMessage.lineIndex)}
+                    wrapLines
+                    max={15}
                 />
+            </div>
+            <div>
+                <button onClick={this.previous}>Prev</button>
+                <button onClick={this.next}>Next</button>
             </div>
         </div>
     }
@@ -133,12 +156,12 @@ export interface OverCodeCluster {
     members: string[]; // solutions in this cluster
 }
 interface OverCodeClusterProps {
-    // clusterIDs: number[];
     cluster_id: number;
     cluster: OverCodeCluster;
 };
 interface OverCodeClusterState {
     selectedCode: string;
+    selectedIndex: number;
 };
 
 
@@ -148,36 +171,76 @@ export class OverCodeClusterWidget extends React.Component<OverCodeClusterProps,
         super(props);
         this.state = {
             selectedCode: this.props.cluster.members[0],
+            selectedIndex: 0,
         }
-        this.selectCode = this.selectCode.bind(this);
+        this.previous = this.previous.bind(this);
+        this.next = this.next.bind(this);
+        
     }
 
-    selectCode(event: React.MouseEvent){
-        var index = parseInt(event.currentTarget.getAttribute('data-index')!);
-        this.setState({selectedCode: this.props.cluster.members[index]});
+    previous(){
+        var index = this.state.selectedIndex;
+        index-=1;
+        if (index===-1){
+            index+=this.props.cluster.count;
+        }
+        this.setState({
+            selectedCode: this.props.cluster.members[index],
+            selectedIndex: index,
+        })
+    }
+
+    next(){
+        var index = this.state.selectedIndex;
+        index+=1;
+        if (index===this.props.cluster.count){
+            index=0;
+        }
+        this.setState({
+            selectedCode: this.props.cluster.members[index],
+            selectedIndex: index,
+        })
     }
 
     render(): React.ReactNode {
 
-        return <div >
+        return <div className='code-group-block'>
             {/* cluster id */}
             <span>Cluster {this.props.cluster_id}, {this.props.cluster.count} solutions</span>
-
-            {/* select slider */}
-            <div>
-                {this.props.cluster.members.map((value, index) => {
-                    return <div className='select-box' data-index={index} onMouseOver={this.selectCode}></div>
-                })}
-            </div>
 
             <div className='code-editor-preview'>
                 <CodeBlock
                     text={this.state.selectedCode}
                     language={"python"}
-                    // highlight={String(this.state.selectedErrorMessage.lineIndex)}
                 />
             </div>
+            <div>
+                <button onClick={this.previous}>Prev</button>
+                <button onClick={this.next}>Next</button>
+            </div>
 
+        </div>
+    }
+}
+
+
+/**
+ * MyTag: React.Component <MyTagProps, MyTagState>
+ * 
+ */
+interface MyTagProps {
+    value: string;
+    count: number;
+};
+interface MyTagState {
+};
+export class MyTag extends React.Component<MyTagProps, MyTagState>{
+    constructor(props: MyTagProps){
+        super(props);
+    }
+    render(): React.ReactNode {
+        return <div className='solution-group-tag'>
+            {this.props.value} {this.props.count}
         </div>
     }
 }

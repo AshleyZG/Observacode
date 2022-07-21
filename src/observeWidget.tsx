@@ -2,7 +2,7 @@ import { VDomRenderer, VDomModel, UseSignal } from '@jupyterlab/apputils';
 
 import React from 'react';
 import { TimeLine, historyEvent, typingActivity } from './timelineWidget';
-import { ClusterWidget, ErrorMessage, OverCodeCluster, OverCodeClusterWidget } from './clusterWidget';
+import { ClusterWidget, ErrorMessage, OverCodeCluster, OverCodeClusterWidget, MyTag } from './clusterWidget';
 import { ConfigPanel } from './configWidget';
 import { requestAPI } from './handler';
 
@@ -254,7 +254,7 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                             />
                         </div>
                         {/* Timeline view */}
-                        <div className='timeline'>
+                        <div className='timeline' id='left-panel'>
                             <TimeLine
                                 width={800}
                                 height={4000}
@@ -269,32 +269,46 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                                 dotOnHover={()=> {}}
                             />
                         </div>
-                        {/* Error view */}
-                        <div>
-                            {
-                                errorTypes.map((value) => {
-                                    return <div>
-                                        <ClusterWidget
-                                            errorType={value}
-                                            errorMessages={this.model.eMessages[value]}
-                                            events={this.model.events}
+                        <div id='right-panel'>
+                            <div>
+                                {errorTypes.map((value) => {
+                                    return <MyTag
+                                        value={value}
+                                        count={this.model.eMessages[value].length}
+                                    />
+                                })}
+                                {this.model.clusterIDs.map((cluster_id: number) => {
+                                    return <MyTag
+                                        value={`cluster ${cluster_id}`}
+                                        count={this.model.overCodeClusters[cluster_id].count}
+                                    />
+                                })}
+                            </div>
+                            <div>
+                                {/* Error view */}
+                                {
+                                    errorTypes.map((value) => {
+                                        return <ClusterWidget
+                                        errorType={value}
+                                        errorMessages={this.model.eMessages[value]}
+                                        events={this.model.events}
                                         />
-                                    </div>
-                                })
-                            }
+                                    })
+                                }
+                                {/* OverCode cluster view */}
+                                {
+                                    this.model.clusterIDs.map((cluster_id: number) => {
+                                        return <OverCodeClusterWidget
+                                        cluster_id={cluster_id}
+                                        cluster={this.model.overCodeClusters[cluster_id]}  
+                                        />
+                                    })
+                                }
+
+                            </div>
+
                         </div>
-                        {/* OverCode cluster view */}
                         <div>
-                            {
-                                this.model.clusterIDs.map((cluster_id: number) => {
-                                    return <div>
-                                        <OverCodeClusterWidget
-                                            cluster_id={cluster_id}
-                                            cluster={this.model.overCodeClusters[cluster_id]}  
-                                        />
-                                    </div>
-                                })
-                            }
                         </div>
                     </div>
                 }}

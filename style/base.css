@@ -15,11 +15,38 @@
     display: inline-block;
     width: 10px;
     height: 5px;
-    /* float: left; */
 }
 
 .overcode-cluster-members {
-    /* max-height: 0px; */
-    /* visibility: hidden; */
     display: none;
+}
+
+#left-panel {
+    overflow-y: scroll;
+    height: 700px;
+    width: 30%;
+    display: inline-block;
+}
+
+#right-panel {
+    display: inline-block;
+    vertical-align: top;
+    width: 70%;
+    height: 700px;
+    overflow-y: scroll;
+}
+
+.solution-group-tag {
+    background-color: silver;
+    border-radius: 10px;
+    display: inline-block;
+    width: fit-content;
+    padding: 1px;
+    margin: 1px;
+}
+
+.code-group-block{
+    display: inline-block;
+    width: 20%;
+    vertical-align: top;
 }
