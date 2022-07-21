@@ -134,7 +134,7 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
             {this.state.lanes.map((value: string, index: number) => {
                 return <g key={index}>
                     
-                    <path className='x-axis' d={`M0 ${this.height/this.state.lanes.length*(index+1)} L${this.width} ${this.height/this.state.lanes.length*(index+1)}`} stroke={"black"}></path>
+                    <path className='x-axis' id={value} d={`M0 ${this.height/this.state.lanes.length*(index+1)} L${this.width} ${this.height/this.state.lanes.length*(index+1)}`} stroke={"black"}></path>
 
                 </g>
             })}

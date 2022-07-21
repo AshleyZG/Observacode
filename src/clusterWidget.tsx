@@ -44,6 +44,8 @@ export class ClusterWidget extends React.Component<ClusterProps, ClusterState>{
             codeExamples={codeExamples}
             messages={messages}
             highlightLineNumbers={highlightLineNumbers}
+            timelineButtonFn={this.props.timelineButtonFn}
+            extraClassName={"error"}
         />
     }
 }
@@ -62,6 +64,7 @@ export interface OverCodeCluster {
     correct: boolean; // is the cluster correct?
     count: number; // how many solutions are in this cluster?
     members: string[]; // solutions in this cluster
+    names: string[]; // student names
 }
 interface OverCodeClusterProps {
     cluster_id: number;
@@ -82,10 +85,12 @@ export class OverCodeClusterWidget extends React.Component<OverCodeClusterProps,
         const count = this.props.cluster.count;
         const codeExamples = this.props.cluster.members;
 
-        return <BasicClusterWidget
+        return <BasicClusterWidget 
             title={title}
             count={count}
             codeExamples={codeExamples}
+            timelineButtonFn={this.props.timelineButtonFn}
+            extraClassName={"overcode"}
         />
     }
 }
@@ -99,7 +104,8 @@ export class OverCodeClusterWidget extends React.Component<OverCodeClusterProps,
     codeExamples: string[];
     messages?: string[];
     highlightLineNumbers?: number[];
-    timelineButtonFn?: React.MouseEventHandler<HTMLButtonElement> | undefined
+    timelineButtonFn?: React.MouseEventHandler<HTMLButtonElement> | undefined;
+    extraClassName?: string;
 };
 interface BasicClusterState {
     selectedIndex: number;
@@ -152,7 +158,7 @@ export class BasicClusterWidget extends React.Component<BasicClusterProps, Basic
 
     render(): React.ReactNode {
 
-        return <div className='code-group-block'>
+        return <div className={this.props.extraClassName? `code-group-block ${this.props.extraClassName}` : 'code-group-block'} data-index={this.state.selectedIndex} data-title={this.props.title}>
             {/* group title */}
             <span>{this.props.title}, {this.props.count} solutions</span>
             {/* message */}

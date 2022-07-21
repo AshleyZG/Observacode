@@ -198,27 +198,53 @@ class ObserveViewModel extends VDomModel {
                 id: cluster_id,
                 correct: this.rawOverCodeResults[cluster_id-1].correct,
                 count: 0,
-                members: []
+                members: [],
+                names: [],
             }
         }else if (! (-1 in this.overCodeClusters)){
             this.overCodeClusters[-1] = {
                 id: -1,
                 correct: this.rawOverCodeResults[cluster_id-1].correct,
                 count: 0,
-                members: []
+                members: [],
+                names: [],
             }
         }
         // debugger;
         if (this.rawOverCodeResults[cluster_id-1].correct){
             this.overCodeClusters[cluster_id].members.push(this.overCodeCandidates[name][idx]);
+            this.overCodeClusters[cluster_id].names.push(name);
             this.overCodeClusters[cluster_id].count+=1;    
         }else{
             this.overCodeClusters[-1].members.push(this.overCodeCandidates[name][idx]);
+            this.overCodeClusters[-1].names.push(name);
             this.overCodeClusters[-1].count+=1;    
 
         }
   
         this.stateChanged.emit();
+    }
+
+    setTimelineFocus(){
+        var scope = this;
+        function fn(event: React.MouseEvent){
+            var targetBlock = event.currentTarget.parentElement?.parentElement!;
+            var index = parseInt(targetBlock.getAttribute('data-index') as string);
+    
+            var name: string | undefined;
+    
+            if (targetBlock.classList.contains('error')){
+                var errorType = targetBlock.getAttribute('data-title') as string;
+                name = scope.eMessages[errorType][index].name;
+            }else if (targetBlock.classList.contains('overcode')){
+                var cluster_id = parseInt((targetBlock.getAttribute('data-title') as string).split(' ').slice(-1)[0]);
+                name = scope.overCodeClusters[cluster_id].names[index];
+            }
+            var targetLine = document.getElementById(name!);
+            targetLine?.classList.add('focus');
+            setTimeout(()=>{targetLine?.classList.remove('focus')}, 5000)
+        }
+        return fn;
     }
 }
 
@@ -292,6 +318,7 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                                         errorType={value}
                                         errorMessages={this.model.eMessages[value]}
                                         events={this.model.events}
+                                        timelineButtonFn={this.model.setTimelineFocus()}
                                         />
                                     })
                                 }
@@ -301,6 +328,7 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                                         return <OverCodeClusterWidget
                                         cluster_id={cluster_id}
                                         cluster={this.model.overCodeClusters[cluster_id]}  
+                                        timelineButtonFn={this.model.setTimelineFocus()}
                                         />
                                     })
                                 }

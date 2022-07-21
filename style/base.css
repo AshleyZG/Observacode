@@ -50,3 +50,7 @@
     width: 20%;
     vertical-align: top;
 }
+
+.x-axis.focus {
+    stroke-width: 5;
+}
