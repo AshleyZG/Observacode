@@ -23,70 +23,28 @@ interface ClusterProps {
     timelineButtonFn?: React.MouseEventHandler<HTMLButtonElement> | undefined
 };
 interface ClusterState {
-    selectedErrorMessage: ErrorMessage,
-    selectedIndex: number,
 };
 
 export class ClusterWidget extends React.Component<ClusterProps, ClusterState>{
 
     constructor(props: ClusterProps){
         super(props);
-
-        this.state = {
-            selectedErrorMessage: this.props.errorMessages[0],
-            selectedIndex: 0,
-        }
-
-        this.next = this.next.bind(this);
-        this.previous = this.previous.bind(this);
-    }
-
-    next(){
-        var index = this.state.selectedIndex;
-        index+=1;
-        if (index===this.props.errorMessages.length){
-            index = 0;
-        }
-        this.setState({
-            selectedIndex: index,
-            selectedErrorMessage: this.props.errorMessages[index]
-        });
-    }
-
-    previous(){
-        var index = this.state.selectedIndex;
-        index-=1;
-        if (index===-1){
-            index += this.props.errorMessages.length;
-        }
-        this.setState({
-            selectedIndex: index,
-            selectedErrorMessage: this.props.errorMessages[index]
-        });
     }
 
     render(): React.ReactNode {
-        return <div className='code-group-block'>
-            {/* Error type */}
-            <span>{this.props.errorType}</span>
-            {/* Error message of selected example */}
-            <div><span>{this.state.selectedErrorMessage.eMessage}</span></div>
-            {/* Error code */}
-            <div className='code-editor-preview'>
-                <CodeBlock
-                    text={this.state.selectedErrorMessage.code}
-                    language={"python"}
-                    highlight={String(this.state.selectedErrorMessage.lineIndex)}
-                    wrapLines
-                    max={15}
-                />
-            </div>
-            <div>
-                <button onClick={this.previous}>Prev</button>
-                <button onClick={this.next}>Next</button>
-                <button onClick={this.props.timelineButtonFn? this.props.timelineButtonFn: ()=>{}}>Timeline</button>
-            </div>
-        </div>
+        const title = this.props.errorType;
+        const count = this.props.errorMessages.length;
+        const codeExamples = this.props.errorMessages.map((value: ErrorMessage)=> {return value.code});
+        const messages = this.props.errorMessages.map((value: ErrorMessage)=> {return value.eMessage});
+        const highlightLineNumbers = this.props.errorMessages.map((value: ErrorMessage)=>{return value.lineIndex});
+
+        return <BasicClusterWidget
+            title={title}
+            count={count}
+            codeExamples={codeExamples}
+            messages={messages}
+            highlightLineNumbers={highlightLineNumbers}
+        />
     }
 }
 
@@ -111,67 +69,24 @@ interface OverCodeClusterProps {
     timelineButtonFn?: React.MouseEventHandler<HTMLButtonElement> | undefined
 };
 interface OverCodeClusterState {
-    selectedCode: string;
-    selectedIndex: number;
 };
-
-
 
 export class OverCodeClusterWidget extends React.Component<OverCodeClusterProps, OverCodeClusterState>{
     constructor(props: OverCodeClusterProps){
         super(props);
-        this.state = {
-            selectedCode: this.props.cluster.members[0],
-            selectedIndex: 0,
-        }
-        this.previous = this.previous.bind(this);
-        this.next = this.next.bind(this);
-        
-    }
-
-    previous(){
-        var index = this.state.selectedIndex;
-        index-=1;
-        if (index===-1){
-            index+=this.props.cluster.count;
-        }
-        this.setState({
-            selectedCode: this.props.cluster.members[index],
-            selectedIndex: index,
-        })
-    }
-
-    next(){
-        var index = this.state.selectedIndex;
-        index+=1;
-        if (index===this.props.cluster.count){
-            index=0;
-        }
-        this.setState({
-            selectedCode: this.props.cluster.members[index],
-            selectedIndex: index,
-        })
     }
 
     render(): React.ReactNode {
 
-        return <div className='code-group-block'>
-            {/* cluster id */}
-            <span>Cluster {this.props.cluster_id}, {this.props.cluster.count} solutions</span>
+        const title = `Cluster ${this.props.cluster_id}`;
+        const count = this.props.cluster.count;
+        const codeExamples = this.props.cluster.members;
 
-            <div className='code-editor-preview'>
-                <CodeBlock
-                    text={this.state.selectedCode}
-                    language={"python"}
-                />
-            </div>
-            <div>
-                <button onClick={this.previous}>Prev</button>
-                <button onClick={this.next}>Next</button>
-                <button onClick={this.props.timelineButtonFn? this.props.timelineButtonFn: ()=>{}}>Timeline</button>
-            </div>
-
-        </div>
+        return <BasicClusterWidget
+            title={title}
+            count={count}
+            codeExamples={codeExamples}
+        />
     }
 }
 
@@ -183,12 +98,14 @@ export class OverCodeClusterWidget extends React.Component<OverCodeClusterProps,
     count: number;
     codeExamples: string[];
     messages?: string[];
+    highlightLineNumbers?: number[];
     timelineButtonFn?: React.MouseEventHandler<HTMLButtonElement> | undefined
 };
 interface BasicClusterState {
     selectedIndex: number;
     selectedCode: string;
     selectedMessage?: string;
+    selectedHighlightLineNumber?: number;
 };
 
 export class BasicClusterWidget extends React.Component<BasicClusterProps, BasicClusterState>{
@@ -197,7 +114,8 @@ export class BasicClusterWidget extends React.Component<BasicClusterProps, Basic
         this.state = {
             selectedIndex: 0,
             selectedCode: this.props.codeExamples[0],
-            selectedMessage: this.props.messages? this.props.messages[0]: undefined
+            selectedMessage: this.props.messages? this.props.messages[0]: undefined,
+            selectedHighlightLineNumber: this.props.highlightLineNumbers? this.props.highlightLineNumbers[0]: undefined,
         }
         this.previous = this.previous.bind(this);
         this.next = this.next.bind(this);
@@ -213,6 +131,7 @@ export class BasicClusterWidget extends React.Component<BasicClusterProps, Basic
         this.setState({
             selectedCode: this.props.codeExamples[index],
             selectedMessage: this.props.messages? this.props.messages[index]: undefined,
+            selectedHighlightLineNumber: this.props.highlightLineNumbers? this.props.highlightLineNumbers[index]: undefined,
             selectedIndex: index,
         })
     }
@@ -226,6 +145,7 @@ export class BasicClusterWidget extends React.Component<BasicClusterProps, Basic
         this.setState({
             selectedCode: this.props.codeExamples[index],
             selectedMessage: this.props.messages? this.props.messages[index]: undefined,
+            selectedHighlightLineNumber: this.props.highlightLineNumbers? this.props.highlightLineNumbers[index]: undefined,
             selectedIndex: index,
         })
     }
@@ -242,6 +162,7 @@ export class BasicClusterWidget extends React.Component<BasicClusterProps, Basic
                 <CodeBlock
                     text={this.state.selectedCode}
                     language={"python"}
+                    highlight={this.state.selectedHighlightLineNumber? String(this.state.selectedHighlightLineNumber):""}
                 />
             </div>
             {/* button group */}
