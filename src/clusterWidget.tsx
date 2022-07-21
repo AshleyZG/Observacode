@@ -1,7 +1,6 @@
 import React from 'react';
 import { CodeBlock } from "react-code-blocks";
 import { historyEvent } from './timelineWidget';
-// import { scaleLog } from 'd3-scale';
 
 /**
  * ClusterWidget<ClusterProps, ClusterState>: React.Component
@@ -21,6 +20,7 @@ interface ClusterProps {
     errorType: string,
     errorMessages: ErrorMessage[]
     events: Map<string, historyEvent[]>
+    timelineButtonFn?: React.MouseEventHandler<HTMLButtonElement> | undefined
 };
 interface ClusterState {
     selectedErrorMessage: ErrorMessage,
@@ -84,6 +84,7 @@ export class ClusterWidget extends React.Component<ClusterProps, ClusterState>{
             <div>
                 <button onClick={this.previous}>Prev</button>
                 <button onClick={this.next}>Next</button>
+                <button onClick={this.props.timelineButtonFn? this.props.timelineButtonFn: ()=>{}}>Timeline</button>
             </div>
         </div>
     }
@@ -107,6 +108,7 @@ export interface OverCodeCluster {
 interface OverCodeClusterProps {
     cluster_id: number;
     cluster: OverCodeCluster;
+    timelineButtonFn?: React.MouseEventHandler<HTMLButtonElement> | undefined
 };
 interface OverCodeClusterState {
     selectedCode: string;
@@ -166,6 +168,87 @@ export class OverCodeClusterWidget extends React.Component<OverCodeClusterProps,
             <div>
                 <button onClick={this.previous}>Prev</button>
                 <button onClick={this.next}>Next</button>
+                <button onClick={this.props.timelineButtonFn? this.props.timelineButtonFn: ()=>{}}>Timeline</button>
+            </div>
+
+        </div>
+    }
+}
+
+/**
+ * Basic cluster widget
+ */
+ interface BasicClusterProps {
+    title: number | string;
+    count: number;
+    codeExamples: string[];
+    messages?: string[];
+    timelineButtonFn?: React.MouseEventHandler<HTMLButtonElement> | undefined
+};
+interface BasicClusterState {
+    selectedIndex: number;
+    selectedCode: string;
+    selectedMessage?: string;
+};
+
+export class BasicClusterWidget extends React.Component<BasicClusterProps, BasicClusterState>{
+    constructor(props: BasicClusterProps){
+        super(props);
+        this.state = {
+            selectedIndex: 0,
+            selectedCode: this.props.codeExamples[0],
+            selectedMessage: this.props.messages? this.props.messages[0]: undefined
+        }
+        this.previous = this.previous.bind(this);
+        this.next = this.next.bind(this);
+        
+    }
+
+    previous(){
+        var index = this.state.selectedIndex;
+        index-=1;
+        if (index===-1){
+            index+=this.props.count;
+        }
+        this.setState({
+            selectedCode: this.props.codeExamples[index],
+            selectedMessage: this.props.messages? this.props.messages[index]: undefined,
+            selectedIndex: index,
+        })
+    }
+
+    next(){
+        var index = this.state.selectedIndex;
+        index+=1;
+        if (index===this.props.count){
+            index=0;
+        }
+        this.setState({
+            selectedCode: this.props.codeExamples[index],
+            selectedMessage: this.props.messages? this.props.messages[index]: undefined,
+            selectedIndex: index,
+        })
+    }
+
+    render(): React.ReactNode {
+
+        return <div className='code-group-block'>
+            {/* group title */}
+            <span>{this.props.title}, {this.props.count} solutions</span>
+            {/* message */}
+            <div><span>{this.state.selectedMessage}</span></div>
+            {/* code block */}
+            <div className='code-editor-preview'>
+                <CodeBlock
+                    text={this.state.selectedCode}
+                    language={"python"}
+                />
+            </div>
+            {/* button group */}
+            <div>
+                <button onClick={this.previous}>Prev</button>
+                <button onClick={this.next}>Next</button>
+                <button onClick={this.props.timelineButtonFn? this.props.timelineButtonFn: ()=>{}}>Timeline</button>
             </div>
 
         </div>
