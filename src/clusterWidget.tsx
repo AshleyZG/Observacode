@@ -1,5 +1,6 @@
 import React from 'react';
 import { CodeBlock } from "react-code-blocks";
+import { COLOR_MAP } from './color';
 import { historyEvent } from './timelineWidget';
 
 /**
@@ -190,6 +191,7 @@ export class BasicClusterWidget extends React.Component<BasicClusterProps, Basic
 interface MyTagProps {
     value: string;
     count: number;
+    onClick: React.MouseEventHandler<HTMLDivElement>;
 };
 interface MyTagState {
 };
@@ -197,8 +199,22 @@ export class MyTag extends React.Component<MyTagProps, MyTagState>{
     constructor(props: MyTagProps){
         super(props);
     }
+
+    tagColor(value: string){
+        if (value.startsWith('cluster')){
+            if (value==='cluster -1'){
+                return COLOR_MAP['cluster-1'];
+            }
+            else {
+                return 'silver';
+            }
+        }else{
+            return COLOR_MAP[value];
+        }
+    }
+
     render(): React.ReactNode {
-        return <div className='solution-group-tag'>
+        return <div className='solution-group-tag' data-value={this.props.value} style={{backgroundColor: this.tagColor(this.props.value)}}  onClick={this.props.onClick}>
             {this.props.value} {this.props.count}
         </div>
     }

@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import { scaleLog } from 'd3-scale';
 import { renderToString } from 'react-dom/server';
 import SyntaxHighlighter from 'react-syntax-highlighter';
+import { COLOR_MAP } from './color';
 
 export interface historyEvent{
     value: string;
@@ -13,6 +14,7 @@ export interface historyEvent{
     correct: boolean;
     tooltip: string;
     eMessage: any;
+    errorType?: string;
 };
 
 export interface typingActivity{
@@ -23,6 +25,7 @@ interface TimeLineProps {
     width?: number;
     height?: number;
     lanes: string[];
+    queryFilter: {[name: string]: number};
     events: Map<string, historyEvent[]>;
     typingActivities: Map<string, typingActivity[]>;
     typingStatus: Map<string, boolean>;
@@ -102,6 +105,17 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
         
     }
 
+
+    barColor(correct: boolean, errorType?: string){
+        if (correct){
+            return COLOR_MAP['correct'];
+        }else if(errorType){
+            return COLOR_MAP[errorType];
+        }else{
+            return COLOR_MAP['cluster-1'];
+        }
+    }
+
     render(): React.ReactNode {
         var domainStart: number | undefined = undefined;
         var domainEnd: number | undefined = undefined;
@@ -134,7 +148,7 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
             {this.state.lanes.map((value: string, index: number) => {
                 return <g key={index}>
                     
-                    <path className='x-axis' id={value} d={`M0 ${this.height/this.state.lanes.length*(index+1)} L${this.width} ${this.height/this.state.lanes.length*(index+1)}`} stroke={"black"}></path>
+                    <path className='x-axis' id={value} d={`M0 ${this.height/this.state.lanes.length*(index+1)} L${this.width} ${this.height/this.state.lanes.length*(index+1)}`} stroke={this.props.queryFilter[value]===0?"black":"teal"}></path>
 
                 </g>
             })}
@@ -159,9 +173,9 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
                                     data-index={index}
                                     data-title={name}
                                     data-tooltip={event.tooltip}
-                                    stroke={event.correct? 'green': 'red'}
-                                    fill={'transparent'}
-                                    fillOpacity={'50%'}
+                                    // stroke={event.correct? 'green': 'red'}
+                                    fill={this.barColor(event.correct, event.errorType)}
+                                    fillOpacity={'90%'}
                                     onMouseOver={this.props.dotOnHover}
                                     onClick={this.props.dotOnClick}
                                 />

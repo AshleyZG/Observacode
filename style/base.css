@@ -24,20 +24,19 @@
 #left-panel {
     overflow-y: scroll;
     height: 700px;
-    width: 30%;
+    width: 50%;
     display: inline-block;
 }
 
 #right-panel {
     display: inline-block;
     vertical-align: top;
-    width: 70%;
+    width: 50%;
     height: 700px;
     overflow-y: scroll;
 }
 
 .solution-group-tag {
-    background-color: silver;
     border-radius: 10px;
     display: inline-block;
     width: fit-content;
@@ -45,10 +44,16 @@
     margin: 1px;
 }
 
+.solution-group-tag.selected {
+    background-color: peachpuff;
+}
+
 .code-group-block{
     display: inline-block;
-    width: 20%;
+    width: 30%;
+    height: 300px;
     vertical-align: top;
+    overflow-y: scroll;
 }
 
 .x-axis.focus {

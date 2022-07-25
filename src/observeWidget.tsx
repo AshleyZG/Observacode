@@ -11,6 +11,7 @@ class ObserveViewModel extends VDomModel {
     solutions: Map<string, string> = new Map();
     outputs: Map<string, any[]> = new Map();
     activeUsers: string[] = [];
+    queryFilter: {[name: string]: number} = {}
     displayAll: boolean;
     events: Map<string, historyEvent[]> = new Map();
     typingActivities: Map<string, typingActivity[]> = new Map();
@@ -25,13 +26,11 @@ class ObserveViewModel extends VDomModel {
     overCodeResults: {[key:string]: number} = {};
     rawOverCodeResults: any[] = [];
     clusterIDs: number[] = [];
-    // overCodeErrorCluster: OverCodeCluster;
 
     constructor(displayAll: boolean = false){
         super();
         this.displayAll = displayAll;
         this.setOverCodeResult();
-        // this.updateOverCodeResults();
     }
 
     setOverCodeResult(){
@@ -72,6 +71,7 @@ class ObserveViewModel extends VDomModel {
         if (this.solutions.has(name) && solution!==this.solutions.get(name)){
             if (!this.activeUsers.includes(name)){
                 this.activeUsers.push(name);
+                this.queryFilter[name] = 0;
                 this.stateChanged.emit();    
             }
             this.solutions.set(name, solution);
@@ -80,6 +80,8 @@ class ObserveViewModel extends VDomModel {
             if (this.displayAll){
                 if (!this.activeUsers.includes(name)){
                     this.activeUsers.push(name);
+                    this.queryFilter[name] = 0;
+
                 }
                 this.solutions.set(name, solution);
                 this.stateChanged.emit();      
@@ -142,7 +144,6 @@ class ObserveViewModel extends VDomModel {
             tooltip: this.solutions.get(name)!,
             eMessage: emessage,
         }
-        
         // set last commit edit number
         this.lastCommitEdits.set(name, this.nAccEdits.get(name)!);
 
@@ -160,7 +161,7 @@ class ObserveViewModel extends VDomModel {
                 name: name,
                 submissionIndex: this.outputs.get(name)!.length-1,
             })
-
+            event.errorType = errorType;
         }else{
             if (! (name in this.overCodeCandidates)){
                 this.overCodeCandidates[name] = [];
@@ -182,15 +183,12 @@ class ObserveViewModel extends VDomModel {
         var new_name = name.split('@')[0];
         var key = new_name+'_'+idx;
         var cluster_id = this.overCodeResults[key];
-        // console.log(key, this.overCodeResults[key]);
 
         if (this.rawOverCodeResults[cluster_id-1].correct && !(this.clusterIDs.includes(cluster_id))){
             this.clusterIDs.push(cluster_id);
         }else if(!(this.clusterIDs.includes(-1))){
             this.clusterIDs.push(-1);
         }
-        // if (){
-        // }
 
 
         if (this.rawOverCodeResults[cluster_id-1].correct && ! (cluster_id in this.overCodeClusters)){
@@ -246,6 +244,44 @@ class ObserveViewModel extends VDomModel {
         }
         return fn;
     }
+
+
+    queryUserNames(query: string){
+        var names: string[];
+        if (query.startsWith('cluster')){
+            var cluster_id = parseInt(query.split(' ').slice(-1)[0]);
+            names = [...new Set(this.overCodeClusters[cluster_id].names)];
+        }else{
+            var errorType = query;
+            names = [...new Set(this.eMessages[errorType].map((value)=> {return value.name}))];
+        }
+        return names;
+    }
+
+    addQuery(query: string){
+        var names = this.queryUserNames(query);
+        for (const value of names){
+            this.queryFilter[value]+=1;
+        }
+        this.activeUsers = this.activeUsers.sort((a, b) => {
+            return this.queryFilter[b]-this.queryFilter[a];
+        })
+        this.stateChanged.emit();
+    }
+
+    removeQuery(query: string){
+        var names = this.queryUserNames(query);
+
+        for (const value of names){
+            this.queryFilter[value]-=1;
+        }
+        this.activeUsers = this.activeUsers.sort((a, b) => {
+            return this.queryFilter[b]-this.queryFilter[a];
+        })
+        this.stateChanged.emit();
+    }
+
+
 }
 
 
@@ -262,6 +298,22 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
         var scope = this;
         function fn(){
             scope.model.setTypingActivityMode();            
+        }
+        return fn;
+    }
+
+    tagOnClick(){
+        var scope = this;
+        function fn(event: React.MouseEvent){
+            console.log(event.currentTarget);
+            var target = event.currentTarget;
+            if (target.classList.contains('selected')){
+                target.classList.remove('selected');
+                scope.model.removeQuery(target.getAttribute('data-value') as string);
+            }else{
+                target.classList.add('selected');
+                scope.model.addQuery(target.getAttribute('data-value') as string);
+            }
         }
         return fn;
     }
@@ -285,6 +337,7 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                                 width={800}
                                 height={4000}
                                 lanes={this.model.activeUsers}
+                                queryFilter={this.model.queryFilter}
                                 events={this.model.events}
                                 typingActivities={this.model.typingActivities}
                                 typingStatus={this.model.typingStatus}
@@ -301,12 +354,14 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                                     return <MyTag
                                         value={value}
                                         count={this.model.eMessages[value].length}
+                                        onClick={this.tagOnClick()}
                                     />
                                 })}
                                 {this.model.clusterIDs.map((cluster_id: number) => {
                                     return <MyTag
                                         value={`cluster ${cluster_id}`}
                                         count={this.model.overCodeClusters[cluster_id].count}
+                                        onClick={this.tagOnClick()}
                                     />
                                 })}
                             </div>
