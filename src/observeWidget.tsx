@@ -26,6 +26,7 @@ class ObserveViewModel extends VDomModel {
     overCodeResults: {[key:string]: number} = {};
     rawOverCodeResults: any[] = [];
     clusterIDs: number[] = [];
+    occurCounter: {[name: string]: {[groupName: string]: number, [groupName: number]: number}} = {};
 
     constructor(displayAll: boolean = false){
         super();
@@ -72,6 +73,7 @@ class ObserveViewModel extends VDomModel {
             if (!this.activeUsers.includes(name)){
                 this.activeUsers.push(name);
                 this.queryFilter[name] = 0;
+                this.occurCounter[name] = {};
                 this.stateChanged.emit();    
             }
             this.solutions.set(name, solution);
@@ -80,6 +82,7 @@ class ObserveViewModel extends VDomModel {
             if (this.displayAll){
                 if (!this.activeUsers.includes(name)){
                     this.activeUsers.push(name);
+                    this.occurCounter[name] = {};
                     this.queryFilter[name] = 0;
 
                 }
@@ -162,12 +165,21 @@ class ObserveViewModel extends VDomModel {
                 submissionIndex: this.outputs.get(name)!.length-1,
             })
             event.errorType = errorType;
+            if (! (errorType in this.occurCounter[name])){
+                this.occurCounter[name][errorType] = 0;
+            }
+            this.occurCounter[name][errorType]+=1;
         }else{
             if (! (name in this.overCodeCandidates)){
                 this.overCodeCandidates[name] = [];
             }
             this.overCodeCandidates[name].push(this.solutions.get(name)!);
-            this.updateOverCodeResults(name);
+            var cluster_id = this.updateOverCodeResults(name);
+            if (! (cluster_id in this.occurCounter[name])){
+                this.occurCounter[name][cluster_id] = 0;
+            }
+            this.occurCounter[name][cluster_id]+=1;
+
         }
 
         if (!this.events.has(name)){
@@ -208,7 +220,7 @@ class ObserveViewModel extends VDomModel {
                 names: [],
             }
         }
-        // debugger;
+
         if (this.rawOverCodeResults[cluster_id-1].correct){
             this.overCodeClusters[cluster_id].members.push(this.overCodeCandidates[name][idx]);
             this.overCodeClusters[cluster_id].names.push(name);
@@ -217,10 +229,15 @@ class ObserveViewModel extends VDomModel {
             this.overCodeClusters[-1].members.push(this.overCodeCandidates[name][idx]);
             this.overCodeClusters[-1].names.push(name);
             this.overCodeClusters[-1].count+=1;    
-
         }
   
         this.stateChanged.emit();
+
+        if (this.rawOverCodeResults[cluster_id-1].correct){
+            return cluster_id;
+        }else{
+            return -1;
+        }
     }
 
     setTimelineFocus(){
@@ -245,6 +262,43 @@ class ObserveViewModel extends VDomModel {
         return fn;
     }
 
+    findSimilar(seedName: string){
+        var targetCounter: {[name:string]: number, [name: number]: number} = this.occurCounter[seedName];
+        const sum = Object.values(targetCounter).reduce((a, b) => a+b, 0);
+        var targetFreq:{[name:string]: number, [name: number]: number} = {};
+        Object.keys(targetCounter).forEach((value)=>{
+            targetFreq[value] = targetCounter[value]/sum;
+        })
+        var diffs:{[name:string]: number} = {};
+        this.activeUsers.forEach((name: string)=>{
+            var refCounter: {[name:string]: number, [name: number]: number} = this.occurCounter[name];
+            var refSum: number = Object.values(refCounter).reduce((a, b) => a+b, 0);
+            var refFreq:{[name:string]: number, [name: number]: number} = {};
+            Object.keys(refCounter).forEach((value)=>{
+                refFreq[value] = refCounter[value]/refSum;
+            })
+            var keys = [...new Set(Object.keys(targetFreq).concat(Object.keys(refFreq)))];
+            var squareDiff: number = keys.reduce((a, b)=>{
+                return a+((targetFreq[b]? targetFreq[b]:0)-(refFreq[b]? refFreq[b]: 0))**2;
+            }, 0);
+            diffs[name] = squareDiff;
+        });
+        this.activeUsers = this.activeUsers.sort((a, b)=>{
+            var delta = diffs[a]-diffs[b];
+            return delta;
+        })
+        this.stateChanged.emit();
+    }
+
+    findSimilarTimeline(){
+        var scope = this;
+        function fn(event: React.MouseEvent){
+            var target = event.currentTarget;
+            var pinTitle = target.getAttribute('data-title') as string;
+            scope.findSimilar(pinTitle);
+        }
+        return fn;
+    }
 
     queryUserNames(query: string){
         var names: string[];
@@ -346,6 +400,7 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                                 dotOnClick={()=> {}}
                                 dotOnDragStart={()=> {}}
                                 dotOnHover={()=> {}}
+                                similarButtonOnClick={this.model.findSimilarTimeline()}
                             />
                         </div>
                         <div id='right-panel'>

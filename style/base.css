@@ -59,3 +59,7 @@
 .x-axis.focus {
     stroke-width: 5;
 }
+
+.timeline-button {
+    fill: silver;
+}

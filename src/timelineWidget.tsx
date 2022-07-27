@@ -34,6 +34,7 @@ interface TimeLineProps {
     dotOnClick: (event:React.MouseEvent<SVGRectElement>) => void;
     dotOnDragStart: (event: React.DragEvent<SVGRectElement>) => void;
     dotOnHover: (event: React.MouseEvent<SVGRectElement>) => void;
+    similarButtonOnClick: (event: React.MouseEvent<SVGRectElement>) => void;
     tooltipMode: boolean;
     typingActivityMode: boolean;
 };
@@ -160,7 +161,6 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
                     return <g key={name}>
                         {(this.props.events.has(name)? this.props.events.get(name)!: []).map((event: historyEvent, index: number) => {
                             const ref = React.createRef<SVGRectElement>();
-                            // console.log(event.radius, logScaler(event.radius));
 
                             return <g key={index}>
                                 <rect 
@@ -201,7 +201,15 @@ class TimeLine extends React.Component<TimeLineProps, TimeLineState> {
                             fill={'gray'}
                             display={this.props.typingStatus.get(name)? 'block': 'none'}
                         />
-
+                        <rect
+                            className='timeline-button'
+                            height={10}
+                            width={10}
+                            x={5}
+                            y={this.height/this.state.lanes.length*((this.state.lanes.indexOf(name))+1)-5}
+                            data-title={name}
+                            onClick={this.props.similarButtonOnClick}
+                        />
                     </g>
                 })}
 
