@@ -24,14 +24,21 @@
 #left-panel {
     overflow-y: scroll;
     height: 700px;
-    width: 50%;
+    width: 33%;
+    display: inline-block;
+}
+
+#middle-panel {
+    overflow-y: scroll;
+    height: 700px;
+    width: 33%;
     display: inline-block;
 }
 
 #right-panel {
     display: inline-block;
     vertical-align: top;
-    width: 50%;
+    width: 33%;
     height: 700px;
     overflow-y: scroll;
 }
@@ -62,4 +69,8 @@
 
 .timeline-button {
     fill: silver;
+}
+
+li.highlighted {
+    background-color: lightblue;
 }

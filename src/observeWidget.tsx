@@ -6,7 +6,14 @@ import { ClusterWidget, ErrorMessage, OverCodeCluster, OverCodeClusterWidget, My
 import { ConfigPanel } from './configWidget';
 import { requestAPI } from './handler';
 
+interface LineItem{
+    count: number;
+    names: string[];
+}
+
 class ObserveViewModel extends VDomModel {
+
+    
 
     solutions: Map<string, string> = new Map();
     outputs: Map<string, any[]> = new Map();
@@ -27,6 +34,10 @@ class ObserveViewModel extends VDomModel {
     rawOverCodeResults: any[] = [];
     clusterIDs: number[] = [];
     occurCounter: {[name: string]: {[groupName: string]: number, [groupName: number]: number}} = {};
+    allLines: {[code: string]: LineItem} = {};
+    sortedLines: string[] = [];
+    // highlightedLines: string[] = [];
+    pinnedName: string = "";
 
     constructor(displayAll: boolean = false){
         super();
@@ -150,6 +161,29 @@ class ObserveViewModel extends VDomModel {
         // set last commit edit number
         this.lastCommitEdits.set(name, this.nAccEdits.get(name)!);
 
+        // add code lines to all lines
+        var lines = this.solutions.get(name)!.split('\n');
+        lines.forEach((value: string) => {
+            const cleanV = value.trim();
+            if (cleanV.startsWith('#')){
+                return;
+            }else if(cleanV.startsWith('print')){
+                return;
+            }else if(cleanV===''){return;}
+            else{
+                if (!(cleanV in this.allLines)){
+                    this.allLines[cleanV] = {count: 0, names: []};
+                    // this.sortedLines = Object.keys(this.allLines).
+                    this.sortedLines.push(cleanV);
+                    this.sortedLines.sort();
+                }
+                this.allLines[cleanV].count+=1;
+                if (!this.allLines[cleanV].names.includes(name)){
+                    this.allLines[cleanV].names.push(name);
+                }
+            }
+        })
+
         // set error message
         if (emessage!=='success'){
             const {errorType, lineIndex} = this.parseErrorMessage(emessage);
@@ -263,6 +297,7 @@ class ObserveViewModel extends VDomModel {
     }
 
     findSimilar(seedName: string){
+        // sort timeline by frequency diff
         var targetCounter: {[name:string]: number, [name: number]: number} = this.occurCounter[seedName];
         const sum = Object.values(targetCounter).reduce((a, b) => a+b, 0);
         var targetFreq:{[name:string]: number, [name: number]: number} = {};
@@ -286,8 +321,32 @@ class ObserveViewModel extends VDomModel {
         this.activeUsers = this.activeUsers.sort((a, b)=>{
             var delta = diffs[a]-diffs[b];
             return delta;
-        })
+        })        
+        // set pinned name
+        this.pinnedName = seedName;
         this.stateChanged.emit();
+    }
+
+    phraseOnClick(){
+        var scope=this;
+        function fn(event: React.MouseEvent){
+            var target = event.currentTarget;
+            var key = target.getAttribute('data-key') as string;
+            // var 
+            var names = scope.allLines[key].names;
+            scope.activeUsers = scope.activeUsers.sort((a, b) =>{
+                // var delta = (names.includes(a))
+                if (names.includes(a) && !names.includes(b)){
+                    return -1;
+                }else if (!names.includes(a) && names.includes(b)){
+                    return 1;
+                }else{
+                    return 0;
+                }
+            })
+            scope.stateChanged.emit();
+        }
+        return fn;
     }
 
     findSimilarTimeline(){
@@ -402,6 +461,19 @@ class ObserveViewWidget extends VDomRenderer<ObserveViewModel> {
                                 dotOnHover={()=> {}}
                                 similarButtonOnClick={this.model.findSimilarTimeline()}
                             />
+                        </div>
+                        <div id='middle-panel'>
+                            <ul>
+                                {
+                                    this.model.sortedLines.map((key: string)=>{
+                                        if (this.model.allLines[key].names.includes(this.model.pinnedName)){
+                                            return <li className='highlighted' data-key={key} onClick={this.model.phraseOnClick()}>{this.model.allLines[key].count} {key}</li>
+                                        }else{
+                                            return <li data-key={key} onClick={this.model.phraseOnClick()}>{this.model.allLines[key].count} {key}</li>
+                                        }
+                                    })
+                                }
+                            </ul>
                         </div>
                         <div id='right-panel'>
                             <div>
