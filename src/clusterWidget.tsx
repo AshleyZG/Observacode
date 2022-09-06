@@ -1,5 +1,6 @@
 import React from 'react';
 import { CodeBlock } from "react-code-blocks";
+import { Position } from './2dViz';
 import { COLOR_MAP } from './color';
 import { historyEvent } from './timelineWidget';
 
@@ -66,6 +67,7 @@ export interface OverCodeCluster {
     count: number; // how many solutions are in this cluster?
     members: string[]; // solutions in this cluster
     names: string[]; // student names
+    positions?: Position[];
 }
 interface OverCodeClusterProps {
     cluster_id: number;

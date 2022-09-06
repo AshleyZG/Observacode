@@ -7,6 +7,9 @@ import { requestAPI } from './handler';
 import plugintest from './toolbar';
 import pluginShare from './realtime';
 import pluginObserveCode from './observeCode';
+import pluginDLView from './dlView';
+import pluginScatterView from './scatterView';
+
 /**
  * Initialization data for the observacode extension.
  */
@@ -29,5 +32,5 @@ const plugin: JupyterFrontEndPlugin<void> = {
 };
 
 
-export default [plugin, plugintest, pluginShare, pluginObserveCode];
+export default [plugin, plugintest, pluginShare, pluginObserveCode, pluginDLView, pluginScatterView];
 // export {plugin, plugintest};

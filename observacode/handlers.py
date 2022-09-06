@@ -12,6 +12,10 @@ DATA_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/over
 
 OVERCODE_PATH = "/Users/gezhang/Research/src/overcode"
 
+DL_VIEW_DATA_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/results_dl_view"
+DL_VIEW_TREE_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/dl_view_tree.json"
+DL_VIEW_DISTANCE_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/dl_view_distance.json"
+
 FUNCTION_NAME = "solution"
 
 class RouteHandler(APIHandler):
@@ -54,11 +58,36 @@ class OverCodeRouteHandler(APIHandler):
             "data": data
         }))
 
+class DLViewRouteHandler(APIHandler):
+    @tornado.web.authenticated
+    def get(self):
+        files = os.listdir(DL_VIEW_DATA_PATH)
+        events = {}
+        for f in files:
+            if f.endswith('.json'):
+                with open(os.path.join(DL_VIEW_DATA_PATH, f), 'r') as fin:
+                    events[f] = json.load(fin)
+
+        with open(DL_VIEW_TREE_PATH, 'r') as fin:
+            tree = json.load(fin)
+        with open(DL_VIEW_DISTANCE_PATH, 'r') as fin:
+            distance = json.load(fin)
+
+        self.finish(json.dumps({
+            "data": "hello",
+            "events": events,
+            "tree": tree,
+            "distance": distance
+        }))
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
 
     base_url = web_app.settings["base_url"]
     route_pattern = url_path_join(base_url, "observacode", "get_example")
     overcode_route_pattern = url_path_join(base_url, "observacode", "get_overcode_results")
-    handlers = [(route_pattern, RouteHandler), (overcode_route_pattern, OverCodeRouteHandler)]
+    dl_view_route_pattern = url_path_join(base_url, "observacode", "get_dl_view_results")
+    handlers = [(route_pattern, RouteHandler), 
+                (overcode_route_pattern, OverCodeRouteHandler),
+                (dl_view_route_pattern, DLViewRouteHandler)]
     web_app.add_handlers(host_pattern, handlers)

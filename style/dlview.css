@@ -1,0 +1,15 @@
+.group-circle {
+    stroke-width: 2;
+    stroke: transparent;
+}
+#code-view {
+    overflow-y: scroll;
+    height: 700px;
+    width: 33%;
+    display: inline-block;
+}
+
+#two-d-viz{
+    width: 66%;
+    display: inline-block;
+}

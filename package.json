@@ -57,12 +57,15 @@
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
     "@jupyterlab/application": "^3.1.0",
+    "@jupyterlab/builder": "4.0.0-alpha.10",
     "@jupyterlab/coreutils": "^5.1.0",
     "@jupyterlab/notebook": "^3.4.2",
     "@jupyterlab/services": "^6.1.0",
     "@jupyterlab/user": "^4.0.0-alpha.2",
     "@mui/material": "^5.8.7",
     "@types/d3": "^7.4.0",
+    "@types/d3-interpolate": "^3.0.1",
+    "@types/d3-path": "^3.0.0",
     "@types/react-slick": "^0.23.10",
     "@types/react-syntax-highlighter": "^15.5.2",
     "d3": "^7.1.1",
@@ -73,7 +76,6 @@
     "yjs": "^13.5.38"
   },
   "devDependencies": {
-    "@jupyterlab/builder": "4.0.0-alpha.10",
     "@types/react-dom": "^18.0.6",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.8.1",
