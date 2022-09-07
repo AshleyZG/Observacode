@@ -189,6 +189,9 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
         var [y, newClusterID] = this.calculateY(event, name);
         this.userCluster[name] = newClusterID;
 
+        if (newClusterID>100){
+            console.log(name, event);
+        }
         // every time y updates, should update how many dots are in each cluster
         this.updateClusterProgress(name, prevClusterID, newClusterID, event.passTest);
 
@@ -200,7 +203,7 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
     }
 
     updateClusterProgress(name: string, prevClusterID: number, newClusterID: number, newCorrectness: boolean){
-
+        // console.log(prevClusterID, newClusterID);
         if (prevClusterID!==-1){
             if(this.clusterProgress[prevClusterID].correct.includes(name)){
                 // remove it from correct

@@ -110,9 +110,9 @@ class ScatterViewModel extends VDomModel {
         var cluster_id = this.overCodeResults[key];
 
         // a few special cases
-        // if (event.treeid===179 || event.treeid===459){
-        //     cluster_id = 12;
-        // }
+        if (['19114', '7071'].includes(event.id)){
+            cluster_id = 12;
+        }
 
         event.clusterID = cluster_id;
 
@@ -261,29 +261,29 @@ class ScatterViewModel extends VDomModel {
         const scope = this;
         function fn(event: React.MouseEvent){
             var target = event.currentTarget;
-            console.log(target.id);
+            // console.log(target.id);
 
             // update right panel - selected solutions are user's commits
             const graph = d3.select('.viz-canvas');
             var currentDots = graph.selectAll('.current-dot');
             var paths = graph.selectAll('.trajectory');
             var historyDots = graph.selectAll('.history-dot');
-            console.log(historyDots.size());
+            // console.log(historyDots.size());
             currentDots.filter(function(d, i){return d!==target.id;})
                 .attr('visibility', 'hidden');
             paths.filter(function(d, i){return d!==target.id;})
                 .attr('visibility', 'hidden');
             historyDots.filter(function(d, i){return d!==target.id;})
                 .attr('visibility', 'hidden');
-            console.log(historyDots.filter(function(d, i){return d!==target.id;}).size());
+            // console.log(historyDots.filter(function(d, i){return d!==target.id;}).size());
 
             // focus on user
             // only show events that have happened
             var count = historyDots.select(function(d, i){return d===target.id? this: null})
                 .selectAll('circle')
                 .size()
-
-            scope.selectedEvents = scope.events[target.id].slice(0, count);
+            
+            scope.selectedEvents = scope.events[target.id].filter((e: DLEvent) => {return e.type==='run';}).slice(0, count);
             scope.feedback = "";
             scope.stateChanged.emit();
         }
@@ -293,7 +293,7 @@ class ScatterViewModel extends VDomModel {
     feedbackSubmit(){
         var scope = this;
         function fn(event:  React.FormEvent<HTMLFormElement>){
-            console.log(scope.feedback);
+            // console.log(scope.feedback);
             scope.selectedEvents.forEach((e: DLEvent) => {
                 e.hasFeedback = true;
             })
@@ -306,7 +306,7 @@ class ScatterViewModel extends VDomModel {
     feedbackChange(){
         var scope = this;
         function fn(event: React.FormEvent<HTMLInputElement>){
-            console.log(event.currentTarget.value);
+            // console.log(event.currentTarget.value);
             scope.feedback = event.currentTarget.value;
             scope.stateChanged.emit();
         }
