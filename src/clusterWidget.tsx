@@ -2,6 +2,7 @@ import React from 'react';
 import { CodeBlock } from "react-code-blocks";
 import { Position } from './2dViz';
 import { COLOR_MAP } from './color';
+import { DLEvent } from './scatterViewWidget';
 import { historyEvent } from './timelineWidget';
 
 /**
@@ -68,6 +69,7 @@ export interface OverCodeCluster {
     members: string[]; // solutions in this cluster
     names: string[]; // student names
     positions?: Position[];
+    events?: DLEvent[];
 }
 interface OverCodeClusterProps {
     cluster_id: number;

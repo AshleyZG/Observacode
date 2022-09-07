@@ -3,7 +3,7 @@ import React from 'react';
 import * as d3 from 'd3';
 
 import { Position } from './2dViz';
-// import SyntaxHighlighter from 'react-syntax-highlighter';
+
 import { requestAPI } from './handler';
 import { OverCodeCluster } from './clusterWidget';
 import SyntaxHighlighter from 'react-syntax-highlighter';
@@ -18,6 +18,7 @@ export interface DLEvent{
     x: number,
     y: number,
     treeid: number,
+    cleanedCode: string,
     clusterID?: number,
     hasFeedback? : boolean,
 }
@@ -82,7 +83,6 @@ class ScatterViewModel extends VDomModel {
 
     constructor(events: {[name: string]: DLEvent[]}){
         super();
-        // var overcode_result = data.data;
         this.rawOverCodeResults = overcode_result;
 
         for (const cluster of overcode_result){
@@ -124,6 +124,7 @@ class ScatterViewModel extends VDomModel {
                 members: [],
                 names: [],
                 positions: [],
+                events: [],
             }
         }
 
@@ -131,11 +132,10 @@ class ScatterViewModel extends VDomModel {
             this.overCodeClusters[cluster_id].members.push(this.overCodeCandidates[name][idx]);
             this.overCodeClusters[cluster_id].names.push(name);
             this.overCodeClusters[cluster_id].positions?.push({x: event.x, y: event.y});
+            this.overCodeClusters[cluster_id].events?.push(event);
             this.overCodeClusters[cluster_id].count+=1;    
         }
   
-        // this.stateChanged.emit();
-
         if (this.rawOverCodeResults[cluster_id-1].correct){
             return cluster_id;
         }else{
@@ -245,7 +245,6 @@ class ScatterViewModel extends VDomModel {
     onBrushChange(){
         const scope = this;
         function fn(events: DLEvent[]){
-            // console.log(events);
             scope.selectedEvents = events;
             scope.feedback = "";
             scope.stateChanged.emit();
@@ -352,7 +351,7 @@ class ScatterViewWidget extends VDomRenderer<ScatterViewModel> {
                         <div className='scatter-middle-view'>
                             {/* number of correct/incorrect solutions */}
                             {this.model.selectedClusterID? <p><span style={{color: 'green'}}>{this.model.selectedCorrectSolutions?.length}</span> correct solutions, <span style={{color: 'red'}}>{this.model.selectedIncorrectSolutions?.length}</span> incorrect solutions.</p>: null}
-                            {/* slider for all students */}
+                            {/* see all students' name */}
                             {this.model.selectedClusterID? <div>
                                 {this.model.selectedCorrectNames?.map((name: string) => {
                                     return <div className='userbox correct' id={name} onClick={this.model.userOnClick()}>
@@ -371,8 +370,7 @@ class ScatterViewWidget extends VDomRenderer<ScatterViewModel> {
                                     return <SyntaxHighlighter 
                                     language='python'
                                     customStyle={{
-                                        backgroundColor: "pink",                                        
-                                        opacity: "1",
+                                        backgroundColor: "#FEDFE1"
                                     }}
                                       >{code}</SyntaxHighlighter>
                                 })}
@@ -388,13 +386,26 @@ class ScatterViewWidget extends VDomRenderer<ScatterViewModel> {
                                 <input type="submit" value="Submit"/>
                             </form>
                             {this.model.selectedEvents.map((event: DLEvent, index: number) => {
-                                return <SyntaxHighlighter 
-                                language='python'
-                                customStyle={{
-                                    backgroundColor: event.passTest? "#F0F0F0": "pink",
-                                    opacity: event.hasFeedback? "50%": "100%",
-                                }}
-                                >{event.code}</SyntaxHighlighter> 
+                                return <div>
+                                    {event.passTest? null: <span>{event.output==='success'? 'Failed the test case': event.output}</span>}
+                                    <SyntaxHighlighter 
+                                    language='python'
+                                    showLineNumbers={true}
+                                    wrapLines={true}
+                                    customStyle={{
+                                        backgroundColor: event.passTest? "#F0F0F0": "#FEDFE1",
+                                        opacity: event.hasFeedback? "50%": "100%",
+                                    }}
+                                    lineProps={(lineNumber: number): React.HTMLProps<HTMLElement> => {
+                                        const style: React.CSSProperties = {display: "block", width: "100%"};
+                                        if (event.output.match(/\d+/g)?.includes(lineNumber.toString())){
+                                            style.backgroundColor="#F596AA";
+                                        }
+                                        return {style};
+                                    }}
+                                    >{event.code}</SyntaxHighlighter> 
+
+                                </div>
                             })}
                         </div>
                     </div>

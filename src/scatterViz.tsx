@@ -1,11 +1,12 @@
 import React from 'react';
 import * as d3 from 'd3';
-// import d3 from 'd3';
 import { scaleLinear, scaleSequential, scaleLog } from 'd3-scale';
 import { DLEvent } from './scatterViewWidget';
 import { Position } from './2dViz';
 
 import { OverCodeCluster } from './clusterWidget';
+import {levenshteinEditDistance} from 'levenshtein-edit-distance';
+
 
 interface ScatterVizProps {
     activeUsers: string[];
@@ -39,7 +40,6 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
     scalerColor: d3.ScaleSequential<string, never>;
     userCurrentEvent: {[name: string]: DLEvent} = {};
     paths: {[name: string]: d3.Path} = {};
-    // contourData: [number, number][] = [];
 
     userCluster: {[name: string]: number} = {}; // if -1, not in any cluster, other wise, is in the cluster 
     clusterProgress: {[clusterID: number]: {correct: string[], incorrect: string[], names: string[]}} = {}
@@ -114,6 +114,19 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
         return d;
     }
 
+    editDistanceToCluster(event: DLEvent, clusterID: number): number{
+        var cluster = this.props.overCodeClusters[clusterID];
+        var d = Infinity;
+        for (var e of cluster.events!){
+            var editDist = this.editDistance(event.cleanedCode, e.cleanedCode);
+            console.log(editDist);
+            if (editDist<d){
+                d = editDist;
+            }
+        }
+        return d;
+    }
+
     calculateY(event: DLEvent, name: string){
         var clusterIDs = this.props.clusterIDs;
         const HEIGHT = this.props.height;
@@ -123,7 +136,6 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
                 var y = HEIGHT / clusterIDs.length * (clusterIDs.indexOf(event.clusterID)+0.75)
                 return [y, event.clusterID];
             }else{
-                // console.log(name, event);
                 console.log('pass test but not have cluster id, need check here');
                 return [0, 1];
             }
@@ -145,9 +157,14 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
         return [y, newClusterID];
     }
 
-    calculateX(event: DLEvent, newClusterID: number){        
+    editDistance(code1: string, code2: string): number{
+        return levenshteinEditDistance(code1, code2);
+    }
+
+    calculateX(event: DLEvent, newClusterID: number){  
+        //   replace distance with edit distance
         const WIDTH = this.props.width;
-        var scaler = scaleLinear().domain([0, WIDTH*0.8/8]).range([0, WIDTH*0.8]);
+        var scaler = scaleLinear().domain([0, 100]).range([0, WIDTH*0.8]);
 
         if (event.passTest){
             if (event.clusterID){
@@ -157,7 +174,8 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
                 return 0;
             }
         }
-        var x = WIDTH*0.8 -scaler(this.distToCluster(event, newClusterID));
+        var editDist = this.editDistanceToCluster(event, newClusterID);
+        var x = WIDTH*0.8-scaler(editDist);
         return x;
     }
 
@@ -169,14 +187,8 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
         // calculate y
         // here y means which solution it is most close to
         var [y, newClusterID] = this.calculateY(event, name);
-        // if (newClusterID>100){
-        //     console.log('ALERT: >100', name, event);
-        // }
         this.userCluster[name] = newClusterID;
 
-        // if (name=='user_115@umich.edu.json'){
-        //     console.log(newClusterID);
-        // }
         // every time y updates, should update how many dots are in each cluster
         this.updateClusterProgress(name, prevClusterID, newClusterID, event.passTest);
 
@@ -188,7 +200,7 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
     }
 
     updateClusterProgress(name: string, prevClusterID: number, newClusterID: number, newCorrectness: boolean){
-        // console.log(prevClusterID, newClusterID);
+
         if (prevClusterID!==-1){
             if(this.clusterProgress[prevClusterID].correct.includes(name)){
                 // remove it from correct
@@ -310,8 +322,6 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
         const graph = d3.select('.viz-canvas');
         var outsideSolutionTag = graph.selectAll('.solution-tag').selectAll('text').filter(function(d, i){return this===event.target}).empty() 
         var outsideUserbox = d3.selectAll('.userbox').filter(function(d, i){return this===event.target.parentElement}).empty();
-        console.log(d3.selectAll('.userbox').size())
-        console.log(event.target.parentElement, outsideUserbox);
 
         if (outsideSolutionTag && outsideUserbox){
             var currentDots = graph.selectAll('.current-dot');
