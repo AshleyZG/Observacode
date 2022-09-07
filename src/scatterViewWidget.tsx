@@ -44,8 +44,6 @@ var overcode_result: any;
 fetch('https://raw.githubusercontent.com/AshleyZG/VizProData/master/solutions.json')
     .then((response) => response.json())
     .then((responseJson) => {
-        console.log('overcode results');
-        console.log(responseJson);
         overcode_result = responseJson;
     })
     .catch((error) => {
@@ -82,7 +80,6 @@ class ScatterViewModel extends VDomModel {
     maxX: number = -Infinity;
     maxY: number = -Infinity;
 
-    // selectedLeafIDs: number[] = [];
     selectedEvents: DLEvent[] = [];
 
     constructor(events: {[name: string]: DLEvent[]}){
@@ -108,7 +105,6 @@ class ScatterViewModel extends VDomModel {
         var key = new_name+'_'+idx;
         var cluster_id = this.overCodeResults[key];
 
-        // a few special cases
         if (['19114', '7071'].includes(event.id)){
             cluster_id = 12;
         }
