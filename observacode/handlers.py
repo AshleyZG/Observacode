@@ -13,7 +13,8 @@ DATA_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/over
 OVERCODE_PATH = "/Users/gezhang/Research/src/overcode"
 
 # DL_VIEW_DATA_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/results_dl_view"
-DL_VIEW_DATA_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/results_dl_view_with_cleaned_code"
+# DL_VIEW_DATA_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/results_dl_view_with_cleaned_code"
+DL_VIEW_DATA_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/results_dl_view_keystroke"
 DL_VIEW_TREE_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/dl_view_tree.json"
 DL_VIEW_DISTANCE_PATH = "/Users/gezhang/Research/src/Observecode-simulation/toy-dataset/dl_view_distance.json"
 

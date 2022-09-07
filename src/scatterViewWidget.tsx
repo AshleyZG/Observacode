@@ -8,17 +8,21 @@ import { requestAPI } from './handler';
 import { OverCodeCluster } from './clusterWidget';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { ScatterViz } from './scatterViz';
+
 export interface DLEvent{
+    id: string,
     code: string,
-    output: string,
     passTest: boolean,
     target: string,
     timeOffset: number,
     type: string,
     x: number,
     y: number,
-    treeid: number,
+    // treeid: number,
     cleanedCode: string,
+    similarities: {[id: string]: number},
+    edit_distances: {[id: string]: number},
+    output?: string,
     clusterID?: number,
     hasFeedback? : boolean,
 }
@@ -47,6 +51,7 @@ requestAPI<any>('get_overcode_results')
     );
 });
 
+// const KEEP_CLUSTER_IDS = [];
 
 class ScatterViewModel extends VDomModel {
 
@@ -105,9 +110,9 @@ class ScatterViewModel extends VDomModel {
         var cluster_id = this.overCodeResults[key];
 
         // a few special cases
-        if (event.treeid===179 || event.treeid===459){
-            cluster_id = 12;
-        }
+        // if (event.treeid===179 || event.treeid===459){
+        //     cluster_id = 12;
+        // }
 
         event.clusterID = cluster_id;
 
@@ -197,7 +202,7 @@ class ScatterViewModel extends VDomModel {
                 this.maxY = event.y>this.maxY? event.y : this.maxY;
                 n_samples += 1;
 
-                if (event.output==='success'){
+                if (event.type==='run' && event.output==='success'){
 
                     // get overcode cluster id
                     if (! (name in this.overCodeCandidates)){
@@ -398,7 +403,7 @@ class ScatterViewWidget extends VDomRenderer<ScatterViewModel> {
                                     }}
                                     lineProps={(lineNumber: number): React.HTMLProps<HTMLElement> => {
                                         const style: React.CSSProperties = {display: "block", width: "100%"};
-                                        if (event.output.match(/\d+/g)?.includes(lineNumber.toString())){
+                                        if (event.output!.match(/\d+/g)?.includes(lineNumber.toString())){
                                             style.backgroundColor="#F596AA";
                                         }
                                         return {style};

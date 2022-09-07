@@ -119,7 +119,7 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
         var d = Infinity;
         for (var e of cluster.events!){
             var editDist = this.editDistance(event.cleanedCode, e.cleanedCode);
-            console.log(editDist);
+            // console.log(editDist);
             if (editDist<d){
                 d = editDist;
             }
@@ -131,7 +131,7 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
         var clusterIDs = this.props.clusterIDs;
         const HEIGHT = this.props.height;
 
-        if (event.passTest){
+        if (event.type==='run' && event.passTest){
             if (event.clusterID){
                 var y = HEIGHT / clusterIDs.length * (clusterIDs.indexOf(event.clusterID)+0.75)
                 return [y, event.clusterID];
@@ -164,9 +164,9 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
     calculateX(event: DLEvent, newClusterID: number){  
         //   replace distance with edit distance
         const WIDTH = this.props.width;
-        var scaler = scaleLinear().domain([0, 100]).range([0, WIDTH*0.8]);
+        var scaler = scaleLinear().domain([0, WIDTH*0.3]).range([0, WIDTH*0.8]);
 
-        if (event.passTest){
+        if (event.type==='run' && event.passTest){
             if (event.clusterID){
                 return WIDTH*0.8;
             }else{
@@ -260,16 +260,18 @@ class ScatterViz extends React.Component<ScatterVizProps, ScatterVizState> {
             .delay(500)
             .attr('d', function(d, i){return scope.paths[d as string].toString()});
         
-        // add history dot
-        var historyDots = graph.selectAll('.history-dot').select(function(d, i){return d===name? this: null});
-        historyDots.append('circle')
-            .datum(event)
-            .attr('r', 2)
-            .attr('cx', x)
-            .attr('cy', y)
-            .attr('fill', passTest? 'green':'red')
-            .attr('opacity', '50%');
+        if (event.type==='run'){
+            // add history dot
+            var historyDots = graph.selectAll('.history-dot').select(function(d, i){return d===name? this: null});
+            historyDots.append('circle')
+                .datum(event)
+                .attr('r', 2)
+                .attr('cx', x)
+                .attr('cy', y)
+                .attr('fill', passTest? 'green':'red')
+                .attr('opacity', '50%');
 
+        }
     }
 
     updateBrush(scope: any, event: any){
