@@ -21,6 +21,18 @@ import { ScatterViewModel, ScatterViewWidget } from './scatterViewWidget';
 import { requestAPI } from './handler';
 import { DLEvent } from './scatterViewWidget';
 
+fetch('https://raw.githubusercontent.com/AshleyZG/VizProData/master/results_dl_view_keystroke/user_101%40umich.edu.json.json')
+     .then((response) => response.json())
+     .then((responseJson) => {
+        console.log('test raw github');
+        console.log(responseJson);
+        // this.setState({ result: responseJson.Cat });
+     })
+     .catch((error) => {
+        console.error(error);
+     })
+
+
 class ButtonExtension implements DocumentRegistry.IWidgetExtension<NotebookPanel, INotebookModel>{
     createNew(widget: NotebookPanel, context: DocumentRegistry.IContext<INotebookModel>): void | IDisposable {
 

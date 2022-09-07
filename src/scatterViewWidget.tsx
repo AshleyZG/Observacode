@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 
 import { Position } from './2dViz';
 
-import { requestAPI } from './handler';
+// import { requestAPI } from './handler';
 import { OverCodeCluster } from './clusterWidget';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { ScatterViz } from './scatterViz';
@@ -18,7 +18,6 @@ export interface DLEvent{
     type: string,
     x: number,
     y: number,
-    // treeid: number,
     cleanedCode: string,
     similarities: {[id: string]: number},
     edit_distances: {[id: string]: number},
@@ -41,17 +40,17 @@ export interface MyNode{
     code?: string,
 }
 var overcode_result: any;
-requestAPI<any>('get_overcode_results')
-.then(data => {
-    overcode_result = data.data;
-})
-.catch(reason => {
-    console.error(
-        `The observacode server extension appears to be missing.\n${reason}`
-    );
-});
 
-// const KEEP_CLUSTER_IDS = [];
+fetch('https://raw.githubusercontent.com/AshleyZG/VizProData/master/solutions.json')
+    .then((response) => response.json())
+    .then((responseJson) => {
+        console.log('overcode results');
+        console.log(responseJson);
+        overcode_result = responseJson;
+    })
+    .catch((error) => {
+        console.error(error);
+    })
 
 class ScatterViewModel extends VDomModel {
 
@@ -261,21 +260,19 @@ class ScatterViewModel extends VDomModel {
         const scope = this;
         function fn(event: React.MouseEvent){
             var target = event.currentTarget;
-            // console.log(target.id);
 
             // update right panel - selected solutions are user's commits
             const graph = d3.select('.viz-canvas');
             var currentDots = graph.selectAll('.current-dot');
             var paths = graph.selectAll('.trajectory');
             var historyDots = graph.selectAll('.history-dot');
-            // console.log(historyDots.size());
+
             currentDots.filter(function(d, i){return d!==target.id;})
                 .attr('visibility', 'hidden');
             paths.filter(function(d, i){return d!==target.id;})
                 .attr('visibility', 'hidden');
             historyDots.filter(function(d, i){return d!==target.id;})
                 .attr('visibility', 'hidden');
-            // console.log(historyDots.filter(function(d, i){return d!==target.id;}).size());
 
             // focus on user
             // only show events that have happened
@@ -293,7 +290,6 @@ class ScatterViewModel extends VDomModel {
     feedbackSubmit(){
         var scope = this;
         function fn(event:  React.FormEvent<HTMLFormElement>){
-            // console.log(scope.feedback);
             scope.selectedEvents.forEach((e: DLEvent) => {
                 e.hasFeedback = true;
             })
@@ -306,7 +302,6 @@ class ScatterViewModel extends VDomModel {
     feedbackChange(){
         var scope = this;
         function fn(event: React.FormEvent<HTMLInputElement>){
-            // console.log(event.currentTarget.value);
             scope.feedback = event.currentTarget.value;
             scope.stateChanged.emit();
         }
