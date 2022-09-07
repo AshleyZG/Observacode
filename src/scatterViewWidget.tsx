@@ -19,6 +19,7 @@ export interface DLEvent{
     y: number,
     treeid: number,
     clusterID?: number,
+    hasFeedback? : boolean,
 }
 
 export interface MyNode{
@@ -67,6 +68,8 @@ class ScatterViewModel extends VDomModel {
     selectedIncorrectSolutions: string[] | undefined;
     selectedCorrectNames: string[] | undefined;
     selectedIncorrectNames: string[] | undefined;
+
+    feedback: string | undefined;
 
     nSample: number | undefined;
     minX: number = Infinity;
@@ -244,6 +247,7 @@ class ScatterViewModel extends VDomModel {
         function fn(events: DLEvent[]){
             // console.log(events);
             scope.selectedEvents = events;
+            scope.feedback = "";
             scope.stateChanged.emit();
         }
         return fn;
@@ -276,17 +280,34 @@ class ScatterViewModel extends VDomModel {
                 .size()
 
             scope.selectedEvents = scope.events[target.id].slice(0, count);
-
+            scope.feedback = "";
             scope.stateChanged.emit();
         }
         return fn;
     }
 
     feedbackSubmit(){
-
+        var scope = this;
+        function fn(event:  React.FormEvent<HTMLFormElement>){
+            console.log(scope.feedback);
+            scope.selectedEvents.forEach((e: DLEvent) => {
+                e.hasFeedback = true;
+            })
+            event.preventDefault();
+            scope.stateChanged.emit();
+        }
+        return fn;
     }
 
-    feedbackChange(){}
+    feedbackChange(){
+        var scope = this;
+        function fn(event: React.FormEvent<HTMLInputElement>){
+            console.log(event.currentTarget.value);
+            scope.feedback = event.currentTarget.value;
+            scope.stateChanged.emit();
+        }
+        return fn;
+    }
 }
 
 
@@ -345,11 +366,6 @@ class ScatterViewWidget extends VDomRenderer<ScatterViewModel> {
                                 })}
                             </div> : null}
                             {this.model.selectedClusterID? <SyntaxHighlighter language='python' >{this.model.overCodeClusters[this.model.selectedClusterID].members[0]}</SyntaxHighlighter> : null}
-                            {/* {this.model.selectedCorrectSolutions? <div>
-                                {this.model.selectedCorrectSolutions.map((code:string) => {
-                                    return <SyntaxHighlighter language='python' >{code}</SyntaxHighlighter>
-                                })}
-                            </div>:null} */}
                             {this.model.selectedIncorrectSolutions? <div>
                                 {this.model.selectedIncorrectSolutions.map((code:string) => {
                                     return <SyntaxHighlighter 
@@ -364,23 +380,21 @@ class ScatterViewWidget extends VDomRenderer<ScatterViewModel> {
                         </div>
                         <div className='scatter-right-view'>
                             {/* feedback */}
-                            <form onSubmit={this.model.feedbackSubmit}>
+                            <form onSubmit={this.model.feedbackSubmit()}>
                                 <label>
                                     Feedback:
-                                    <input type="text" onChange={this.model.feedbackChange}/>
+                                    <input type="text" value={this.model.feedback} onChange={this.model.feedbackChange()}/>
                                 </label>
+                                <input type="submit" value="Submit"/>
                             </form>
                             {this.model.selectedEvents.map((event: DLEvent, index: number) => {
-                                return event.passTest?  
-                                <SyntaxHighlighter 
-                                language='python'
-                                >{event.code}</SyntaxHighlighter> :
-                                <SyntaxHighlighter 
+                                return <SyntaxHighlighter 
                                 language='python'
                                 customStyle={{
-                                    backgroundColor: "pink",
+                                    backgroundColor: event.passTest? "#F0F0F0": "pink",
+                                    opacity: event.hasFeedback? "50%": "100%",
                                 }}
-                                >{event.code}</SyntaxHighlighter>
+                                >{event.code}</SyntaxHighlighter> 
                             })}
                         </div>
                     </div>
